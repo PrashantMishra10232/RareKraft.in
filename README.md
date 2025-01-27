@@ -1,15 +1,15 @@
-Rare Craft
+#Rare Craft
 
 An eCommerce platform built using the MERN stack (MongoDB, Express.js, React, Node.js). This project is designed to serve as a fully functional online store with features for browsing products, managing user accounts, and handling orders.
 
 Features
 
-.> User Authentication: Secure login and signup using JWT.
-.> Product Management: Add, edit, and delete products (Admin only).
-.> Shopping Cart: Add items to the cart and manage quantities.
-.> Order Management: Place orders and view order history.
-.> Payment Integration: [Specify payment gateway, e.g., Stripe or PayPal].
-.> Responsive Design: Optimized for both desktop and mobile devices.
+-> 🔒 User Authentication: Secure login and signup using JWT.
+-> 🛒 Product Management: Add, edit, or delete products (Admin-only feature).
+-> 🛍️ Shopping Cart: Add products, manage quantities, and remove items.
+-> 📦 Order Management: Place orders and view order history.
+-> 💳 Payment Integration: Support for [Stripe/PayPal].
+-> 📱 Responsive Design: Fully optimized for both desktop and mobile devices.
 
 Tech Stack
 
