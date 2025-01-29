@@ -1,4 +1,3 @@
-import {asyncHandler} from "../utils/AsyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import jwt from "jsonwebtoken"
@@ -31,16 +30,14 @@ export const isAuthenticatedUser = async(req, _, next)=>{
 }
 
 export const authorizeRole = (...roles)=>{
-    return (req,res,next) =>{
+    return (req, _,next) =>{
 
         if (!req.user) {
-            return next(new ApiError(401, "Unauthorized request. User not authenticated."));
+            throw new ApiError(401, "Unauthorized request. User not authenticated.");
         }
 
         if(!roles.includes(req.user.role)){
-            return next(
-                new ApiError(403,`Role: ${req.user.role} is not allowed to access this resource`)
-            )
+            throw new ApiError(403,`Role: ${req.user.role} is not allowed to access this resource`)
         }
         next();
     }
