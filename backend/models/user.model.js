@@ -35,7 +35,8 @@ const userSchema = new mongoose.Schema({
         default: Date.now,
     },
     refreshToken: {
-        type:String
+        type:String,
+        select:false
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
@@ -51,7 +52,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password,this.password)
 }
 
-userSchema.methods.getResetPasswordToken = function () {
+userSchema.methods.getResetPasswordToken = function(){
     // Generating Token
     const resetToken = crypto.randomBytes(20).toString("hex");
   
@@ -68,11 +69,11 @@ userSchema.methods.getResetPasswordToken = function () {
 
 
 //generating access and refresh token
-userSchema.methods.generateAccesstoken = function(){
+userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id:this.id,
-            fullName:this.name,
+            name:this.name,
             email:this.email
         },
         process.env.ACCESS_TOKEN_SECRET,
