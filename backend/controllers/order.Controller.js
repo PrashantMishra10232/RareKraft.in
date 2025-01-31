@@ -4,34 +4,53 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const newOrder = asyncHandler(async (req, res) => {
-  const {
-    shippingInfo,
-    orderItems,
-    paymentInfo,
-    itemsPrice,
-    shippingPrice,
-    totalPrice,
-  } = req.body;
+  const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } =
+    req.body;
 
+  if (orderItems.length == 0) {
+    throw new ApiError(400, "No order items found");
+  }
   const order = await Order.create({
     shippingInfo,
     orderItems,
-    paymentInfo,
     itemsPrice,
     shippingPrice,
     totalPrice,
-    paidAt: Date.now(),
+    paidAt: null,
     user: req.user._id,
   });
 
   res.status(201).json(new ApiResponse(200, order));
 });
 
+const updateOrderPaymentInfo = asyncHandler(async (req, res) => {
+  const { orderId, paymentId, status } = req.body; // Payment data received from frontend or payment gateway
+
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found with this id");
+  }
+
+  // Update the order with payment info and mark it as "Paid"
+  order.paymentInfo = {
+    id: paymentId,
+    status: status, // The status of payment (e.g., "Success", "Failed")
+  };
+  order.paidAt = Date.now();
+  order.orderStatus = "Paid"; // Update to "Paid" when payment is successful
+
+  await order.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, order, "Payment processed and order updated"));
+});
+
 const getSingleOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
-    "user",
-    "name email"
-  );
+  const order = await Order.findById(req.params.id)
+    .populate("user", "name email")
+    .populate("orderItems.product");
 
   if (!order) {
     throw new ApiError(404, "Order not found with this id");
@@ -89,20 +108,31 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 
   await order.save({ validateBeforeSave: false });
-  res.status(200).json(new ApiResponse(200,{order},"Order status updated successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, { order }, "Order status updated successfully"));
 });
 
-const deleteOrder = asyncHandler(async(req,res)=>{
-    const order = await Order.findById(req.params.id);
+const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
 
-    if(!order){
-        throw new ApiError(404,"Order not found with this id")
-    }
+  if (!order) {
+    throw new ApiError(404, "Order not found with this id");
+  }
 
-    await order.deleteOne({_id:order._id});
+  await order.deleteOne({ _id: order._id });
 
-    return res.status(200)
-    .json(new ApiResponse(200,null,"Order deleted successfully"))
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Order deleted successfully"));
+});
 
-export {deleteOrder,updateOrderStatus,getAllOrders,myOrders,getSingleOrder,newOrder}
+export {
+  deleteOrder,
+  updateOrderStatus,
+  updateOrderPaymentInfo,
+  getAllOrders,
+  myOrders,
+  getSingleOrder,
+  newOrder,
+};
