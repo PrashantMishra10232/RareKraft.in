@@ -11,9 +11,20 @@ class ApiFeatures {
             $regex: this.queryStr.keyword,
             $options: "i",
           },
+          description: {
+            $regex: this.queryStr.keyword,
+            $options: "i",
+          },
         }
       : {};
     this.query = this.query.find({ ...keyword });
+    return this;
+  }
+
+  filter() {
+    if (this.queryStr.category) {
+      this.query = this.query.find({ category: this.queryStr.category });
+    }
     return this;
   }
 
@@ -28,4 +39,4 @@ class ApiFeatures {
   }
 }
 
-export {ApiFeatures}
+export { ApiFeatures };
