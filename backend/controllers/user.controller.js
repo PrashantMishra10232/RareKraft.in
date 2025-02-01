@@ -6,6 +6,7 @@ import { sendEmail } from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import validator from "validator"
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -71,7 +72,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
     throw new ApiError(400, "User does not exist");
   }
@@ -334,6 +335,14 @@ const updateRole = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid role provided");
   }
 
+  if (!name && !email && !role) {
+    throw new ApiError(400, "At least one field (name, email, role) must be provided");
+  }
+
+  if (email && !validator.isEmail(email)) {
+    throw new ApiError(400, "Please provide a valid email");
+  }
+
   const user = await User.findByIdAndUpdate(
     req.params.id,
     { name, email, role },
@@ -352,19 +361,32 @@ const updateRole = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user }, "Role updated successfully"));
 });
 
-
 //delete user(admin)
-const deleteUser = asyncHandler(async(req,res)=>{
-    const user = await User.findById(req.params.id);
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
 
-    if(!user){
-        throw new ApiError(400,`User does not exist with Id: ${req.params.id}`)
-    }
+  if (!user) {
+    throw new ApiError(400, `User does not exist with Id: ${req.params.id}`);
+  }
 
-    await User.findByIdAndDelete(req.params.id);
+  await User.findByIdAndDelete(req.params.id);
 
-    return res.status(200)
-    .json(new ApiResponse(200,"User deleted successfully"))
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User deleted successfully"));
+});
 
-export {registerUser,loginUser,logOut,deleteUser,getAllUsers,getUser,getUserDetails,refreshAccessToken,updateRole,updateUserProfile,resetPassword,forgotPassword}
+export {
+  registerUser,
+  loginUser,
+  logOut,
+  deleteUser,
+  getAllUsers,
+  getUser,
+  getUserDetails,
+  refreshAccessToken,
+  updateRole,
+  updateUserProfile,
+  resetPassword,
+  forgotPassword,
+};
