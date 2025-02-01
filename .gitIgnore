@@ -1,1 +1,44 @@
-/backend/.env
+# Node modules (Dependencies)
+backend/node_modules/
+
+# Environment Variables (Keep credentials safe)
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.production
+backend/.env.test
+
+# Logs & Debug Files
+backend/logs/
+backend/debug.log
+backend/error.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/pnpm-debug.log*
+
+# Build & Compiled Files
+backend/dist/
+backend/build/
+backend/.cache/
+backend/.tmp/
+
+# Database Files (if applicable)
+backend/*.sqlite
+backend/*.sqlite3
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+
+# Uploaded Files (If storing images locally)
+backend/uploads/
+backend/public/uploads/
+
+# IDE/Editor Specific Files
+backend/.vscode/
+backend/.idea/
+backend/*.sublime-workspace
+
+# Miscellaneous
+backend/.DS_Store
+backend/Thumbs.db
