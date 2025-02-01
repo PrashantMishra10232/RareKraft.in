@@ -2,6 +2,7 @@ import { Order } from "../models/order.model.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import {Product} from "../models/product.model.js"
 
 const newOrder = asyncHandler(async (req, res) => {
   const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } =

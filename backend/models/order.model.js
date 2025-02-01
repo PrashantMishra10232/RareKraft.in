@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import {Product} from "../models/product.model.js"
 
 const orderSchema = new mongoose.Schema(
   {
@@ -61,16 +62,16 @@ const orderSchema = new mongoose.Schema(
     paymentInfo: {
       id: {
         type: String,
-        required: true,
+        default: null
       },
       status: {
         type: String,
-        required: true,
+        default: "pendng",
       },
     },
     paidAt: {
       type: Date,
-      required: true,
+      default: null
     },
     itemsPrice: {
       type: Number,
