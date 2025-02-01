@@ -1,6 +1,6 @@
-import { asyncHandler } from "../utils/AsyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
+import { asyncHandler } from "../utils/AsyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiFeatures } from "../utils/ApiFeatures.js";
 import { Product } from "../models/product.model.js";
 import {
@@ -160,7 +160,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Error deleting images from Cloudinary");
   }
 
-  await product.remove();
+  await product.deleteOne();
 
   return res
     .status(200)

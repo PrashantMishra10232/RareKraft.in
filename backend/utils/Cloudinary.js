@@ -17,7 +17,7 @@ const uploadOnCloudinary = async(localFilePath)=>{
         //upload the file on clodinary
         const response = await cloudinary.uploader.upload(localFilePath,{
             resource_type:"image",
-            folder:"Job_Portal/Profile_Photos"
+            folder:"Products/images"
         })
 
         // console.log("File uploaded successfully:", response.url);
