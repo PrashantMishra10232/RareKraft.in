@@ -2,7 +2,7 @@ import {asyncHandler} from "../utils/AsyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import razorpay from "../utils/razorpay.js"
-import Order from "../models/order.model.js"
+import {Order} from "../models/order.model.js"
 
 const processPayment = asyncHandler(async(req,res)=>{
     const {orderId} = req.body; 
