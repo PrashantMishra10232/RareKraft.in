@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        default: "user",
+        enum:["Seller","Buyer"],
+        default: "Buyer",
     },
     createdAt: {
         type: Date,
@@ -40,6 +41,8 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+},{
+    timestamps: true,
 })
 
 userSchema.pre("save",async function(next){
