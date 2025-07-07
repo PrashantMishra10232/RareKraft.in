@@ -8,38 +8,39 @@ import {
   deleteFromCloudinary,
 } from "../utils/Cloudinary.js";
 
-//create product --(admin)
+//create product --(seller)
 const createProduct = asyncHandler(async (req, res) => {
-  let images = req.body.images
-    ? Array.isArray(req.body.images)
-      ? req.body.images
-      : [req.body.images]
-    : [];
-
-  const imagesLinks = [];
-
-  try {
-    //upload images
-    const uploadPromises = images.map((image) =>
-      uploadOnCloudinary(image, { folder: "products" })
-    );
-
-    const uploadResults = await Promise.all(uploadPromises);
-
-    uploadResults.forEach((result) => {
-      imagesLinks.push({
-        public_id: result.public_id,
-        url: result.secure_url,
-      });
-    });
-  } catch (error) {
-    throw new ApiError(500, "Image Upload failed");
+  const { name, description, price } = req.body;
+  if ([name, price, description].some((field) => field.trim() === "")) {
+    throw new ApiError(404, "All fields are required");
   }
 
-  req.body.images = imagesLinks;
-  req.body.user = req.user._id;
+  let imagesLinks;
+  let uploadResults = [];
 
-  const product = await Product.create(req.body);
+  if (req.files && req.file.length > 0) {
+    const uploadPromises = req.files.map((file) =>
+      uploadOnCloudinary(file.buffer, file.originalname)
+    );
+
+    uploadResults = await Promise.all(uploadPromises);
+  }
+
+  if (!uploadResults) {
+    throw new ApiError(401, "Upload failed");
+  }
+
+  imagesLinks = uploadResults.map((result) => ({
+    public_id: result.public_id,
+    url: result.secure_url,
+  }));
+
+  const product = await Product.create({
+    name,
+    description,
+    price,
+    images: imagesLinks,
+  });
 
   return res
     .status(200)
@@ -97,43 +98,38 @@ const updateproduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
-  let updateData = { ...req.body }; // Use a separate object instead of modifying req.body
+  const { name, description, price } = req.body;
 
-  if (req.body.images) {
-    let images = Array.isArray(req.body.images)
-      ? req.body.images
-      : [req.body.images];
+  if (name?.trim()) product.name = name;
+  if (description?.trim()) product.description = description;
+  if (price) product.price = price;
 
-    if (images.length > 0) {
-      // Delete old images (if they exist)
-      if (product.images?.length) {
-        await Promise.all(
-          product.images.map((image) => deleteFromCloudinary(image.public_id))
-        );
-        console.log("Deleting old images...");
-      }
+  if (req.files && req.files.length > 0) {
+    const deletePromises = product.images.map((image) =>
+      deleteFromCloudinary(image.public_id)
+    );
 
-      // Upload new images
-      const uploadPromises = images.map((image) =>
-        uploadOnCloudinary(image, { folder: "products" })
-      );
-      console.log("Uploading new images...");
+    await Promise.all(deletePromises);
 
-      const uploadResults = await Promise.all(uploadPromises);
+    const uploadPromises = req.files.map((file) =>
+      uploadOnCloudinary(file.buffer, file.originalname)
+    );
 
-      // Store new image links
-      updateData.images = uploadResults.map((result) => ({
-        public_id: result.public_id,
-        url: result.secure_url,
-      }));
+    const uploadResults = await Promise.all(uploadPromises);
+
+    if (!uploadResults || uploadResults.length === 0) {
+      throw new ApiError(500, "Image upload failed");
     }
+
+    const imagesLinks = uploadResults.map((result) => ({
+      public_id: result.public_id,
+      url: result.secure_url,
+    }));
+
+    product.images = imagesLinks;
   }
 
-  // Updating product
-  product = await Product.findByIdAndUpdate(req.params.id, updateData, {
-    new: true,
-    runValidators: true,
-  });
+  await product.save();
 
   return res
     .status(200)
@@ -236,10 +232,13 @@ const deleteReview = asyncHandler(async (req, res) => {
   // Remove the review
   product.reviews.splice(reviewIndex, 1);
 
-
   //calculate the average rating
-  const totalRatings = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
-  const ratings = product.reviews.length === 0 ? 0 : totalRatings / product.reviews.length;
+  const totalRatings = product.reviews.reduce(
+    (acc, rev) => acc + rev.rating,
+    0
+  );
+  const ratings =
+    product.reviews.length === 0 ? 0 : totalRatings / product.reviews.length;
 
   //update the product again
   await Product.findByIdAndUpdate(
@@ -262,16 +261,23 @@ const deleteReview = asyncHandler(async (req, res) => {
 });
 
 //get all reviews
-const getAllReviews = asyncHandler(async(req,res)=>{
-    const product = await Product.findById(req.query.id);
+const getAllReviews = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.query.id);
 
-    if (!product) {
-      throw new ApiError(404,"Product not found");
-    }
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
 
-    return res.status(200)
-    .json(new ApiResponse(200,{reviews: product.reviews},"All reviews fetched successfully"))
-})
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { reviews: product.reviews },
+        "All reviews fetched successfully"
+      )
+    );
+});
 export {
   createProduct,
   getAllProducts,
@@ -281,5 +287,5 @@ export {
   deleteProduct,
   createReview,
   deleteReview,
-  getAllReviews
+  getAllReviews,
 };

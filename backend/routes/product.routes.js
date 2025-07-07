@@ -11,21 +11,22 @@ import {
   deleteReview,
   getAllReviews,
 } from "../controllers/product.controller.js";
+import upload from "../middlewares/multer.middleware.js"
 
 
 const router = Router();
 
-router.route("/new").post(isAuthenticatedUser,authorizeRole("admin"),createProduct);
+router.route("/new").post(isAuthenticatedUser,upload.array("images"),authorizeRole("Seller"),createProduct);
 
 router.route("/all").get(isAuthenticatedUser,getAllProducts);
 
-router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("admin"),getAdminProducts);
+router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("Seller"),getAdminProducts);
 
 router.route("/details/:id").get(isAuthenticatedUser,getProductDetails);
 
-router.route("/admin/update/:id").put(isAuthenticatedUser,authorizeRole("admin"),updateproduct);
+router.route("/admin/update/:id").put(isAuthenticatedUser,authorizeRole("Seller"),updateproduct);
 
-router.route("/admin/delete/:id").delete(isAuthenticatedUser,authorizeRole("admin"),deleteProduct);
+router.route("/admin/delete/:id").delete(isAuthenticatedUser,authorizeRole("Seller"),deleteProduct);
 
 router.route("/review").post(isAuthenticatedUser,createReview);
 

@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import {v2 as cloudinary} from "cloudinary"
-import fs from "fs"
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -8,53 +7,42 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-const uploadOnCloudinary = async(localFilePath)=>{
-    try {
-        if(!localFilePath){
-            console.error("No file path provided for upload.");
-            return null;
-        };
-        //upload the file on clodinary
-        const response = await cloudinary.uploader.upload(localFilePath,{
-            resource_type:"image",
-            folder:"Products/images"
-        })
-
-        // console.log("File uploaded successfully:", response.url);
-
-        // File uploaded, now delete it from the server
-        try {
-            fs.unlinkSync(localFilePath);
-        } catch (unlinkError) {
-            console.error(`Error deleting file from local server: ${unlinkError.message}`);
-        }
-
-        return response;
-    } catch (error) {
-        //if upload fails remove the locally saved file from the server
-        console.error("Error uploading file to Cloudinary:", error.message);
-
-        // Attempt to delete the local file if it exists
-        try {
-            fs.unlinkSync(localFilePath);
-        } catch (unlinkError) {
-            console.error(`Error deleting file after failed upload: ${unlinkError.message}`);
-        }
-
+const uploadOnCloudinary = async(fileBuffer, originalname)=>{
+    if (!fileBuffer || !originalname) {
+        console.error("Missing file buffer or filename.");
         return null;
     }
+
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({
+            resource_type: "auto",
+            folder: "RareKraft/products",
+            use_filename: true,
+            filename_override: originalname,
+        }, (error, result) => {
+            if (error) {
+                console.error("Error uploading file to Cloudinary:", error.message);
+                reject(null);
+            } else {
+                resolve(result);
+            }
+        });
+
+        stream.end(fileBuffer);
+    });
 }
 
-const deleteFromCloudinary = async(public_id)=>{
+const deleteFromCloudinary = async (public_id,resourceType = "image") => {
     try {
-        if(!public_id) return null;
-        const response = await cloudinary.uploader.destroy(public_id,{
-            resource_type:"image"
-        })
+        if (!public_id) return null;
+        const response = await cloudinary.uploader.destroy(public_id, {
+            resource_type: resourceType
+        });
         return response;
     } catch (error) {
-        return null;        
+        console.error("Error deleting file from Cloudinary:", error.message);
+        return null;
     }
-}
+};
 
 export {uploadOnCloudinary,deleteFromCloudinary}
