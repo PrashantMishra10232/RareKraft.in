@@ -18,7 +18,7 @@ const processPayment = asyncHandler(async(req,res)=>{
     }
 
     const options = {
-        amount: order.totalPrice * 100,//convert to paise
+        amount: order.totalPrice * 100,
         currency: "INR",
         receipt: `receipt_${orderId}`,
         payment_capture: 1, //auto capture payment
@@ -26,13 +26,28 @@ const processPayment = asyncHandler(async(req,res)=>{
 
     // create razorpay order
     try {
-        // 3️⃣ Create Razorpay Order
         const razorpayOrder = await razorpay.orders.create(options);
-
-        // 4️⃣ Send Response
         return res.status(200).json(new ApiResponse(200, razorpayOrder, "Payment API"));
     } catch (error) {
         throw new ApiError(500, "Error creating Razorpay order", error);
+    }
+})
+
+const verifyPayment = asyncHandler(async(req,res)=>{
+    const {razorpay_order_id, razorpay_payment_id, razorpay_signature}= req.body;
+
+    const body = razorpay_order_id + '|' + razorpay_payment_id //required format to recreate the signature
+
+    const expectedSignature = crypto
+    .createHmac('sha256',process.env.RAZORPAY_SECRET_KEY)
+    .update(body.toString())
+    .digest('hex');
+
+    if(expectedSignature === razorpay_signature){
+        res.json({success: true, message: 'Payment verified successfully'});
+    }
+    else{
+        res.status(400).json({success:false, message: 'Invalid signature'});
     }
 })
 
@@ -41,4 +56,4 @@ const sendRazorpayApiKey = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200,{razorpayApiKey: process.env.RAZORPAY_API_KEY}))
 })
 
-export {processPayment,sendRazorpayApiKey}
+export {processPayment,sendRazorpayApiKey,verifyPayment}

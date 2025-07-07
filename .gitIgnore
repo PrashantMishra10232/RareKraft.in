@@ -15,3 +15,4 @@ backend/uploads/
 backend/public/uploads/
 
 
+backend/node_modules/bson/lib/bson.bundle.js.map
