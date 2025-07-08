@@ -90,8 +90,11 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      required: true,
+      enum:["Processing","Shipped","Delivered"],
       default: "Processing",
+    },
+    paymentMethod:{
+      type:String
     },
     deliveredAt: Date,
   },

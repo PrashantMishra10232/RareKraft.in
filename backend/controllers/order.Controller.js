@@ -2,7 +2,7 @@ import { Order } from "../models/order.model.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import {Product} from "../models/product.model.js"
+// import {Product} from "../models/product.model.js"
 
 const newOrder = asyncHandler(async (req, res) => {
   const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } =
@@ -33,13 +33,12 @@ const updateOrderPaymentInfo = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Order not found with this id");
   }
 
-  // Update the order with payment info and mark it as "Paid"
   order.paymentInfo = {
     id: paymentId,
-    status: status, // The status of payment (e.g., "Success", "Failed")
+    status: status,
   };
   order.paidAt = Date.now();
-  order.orderStatus = "Paid"; // Update to "Paid" when payment is successful
+  order.orderStatus = "Paid"; 
 
   await order.save();
 
@@ -73,7 +72,7 @@ const myOrders = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, orders));
 });
 
-//get all orders (admin)
+//get all orders (seller)
 const getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find();
 
@@ -90,7 +89,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     );
 });
 
-//update order status(admin)
+//update order status(seller)
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 

@@ -17,15 +17,15 @@ const router = Router();
 router.route("/new").post(isAuthenticatedUser,newOrder);
 
 router.route("/admin/:id")
-.delete(isAuthenticatedUser,authorizeRole("admin"),deleteOrder)
-.put(isAuthenticatedUser,authorizeRole("admin"),updateOrderStatus)
+.delete(isAuthenticatedUser,authorizeRole("seller"),deleteOrder)
+.put(isAuthenticatedUser,authorizeRole("seller"),updateOrderStatus)
 .get(isAuthenticatedUser,getSingleOrder);
 
-router.route("/admin").get(isAuthenticatedUser,authorizeRole("admin"),getAllOrders)
+router.route("/admin").get(isAuthenticatedUser,authorizeRole("seller"),getAllOrders)
 
 router.route("/me").get(isAuthenticatedUser,myOrders)
 
-router.route("/admin/paymentInfo").put(isAuthenticatedUser,authorizeRole("admin"),updateOrderPaymentInfo)
+router.route("/admin/paymentInfo").put(isAuthenticatedUser,authorizeRole("seller"),updateOrderPaymentInfo)
 
 
 
