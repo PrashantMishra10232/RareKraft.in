@@ -4,6 +4,7 @@ import {
   authorizeRole,
 } from "../middlewares/auth.middleware.js";
 import {
+  requestOtp,
   registerUser,
   loginUser,
   logOut,
@@ -15,16 +16,20 @@ import {
   getUser,
   updateRole,
   deleteUser,
-  refreshAccessToken
+  handleLoginSuccess,
+  refreshAccessToken,
 } from "../controllers/user.controller.js";
+import passport from "passport";
 
 const router = Router();
+
+router.route("/getOtp").get(requestOtp);
 
 router.route("/register").post(registerUser);
 
 router.route("/login").post(loginUser);
 
-router.route("/refresh_Token").post(isAuthenticatedUser,refreshAccessToken);
+router.route("/refresh_Token").post(isAuthenticatedUser, refreshAccessToken);
 
 router.route("/password/forgot").post(forgotPassword);
 
@@ -46,4 +51,22 @@ router
   .put(isAuthenticatedUser, authorizeRole("admin"), updateRole)
   .delete(isAuthenticatedUser, authorizeRole("admin"), deleteUser);
 
-  export default router;
+router.get("/auth/google", (req, res, next) => {
+  const { role } = req.query;
+  const state = Buffer.from(JSON.stringify({ role })).toString("base64");
+
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state,
+  })(req, res, next);
+});
+router
+  .route("/auth/google/callback")
+  .get(
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: "/login",
+    }),
+    handleLoginSuccess
+  );
+export default router;

@@ -3,6 +3,9 @@ import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import connectDB from "./utils/connection.js";
+import passport from "passport";
+import GoogleStrategy from "passport-google-oauth20"
+import { googleCallback } from "./controllers/user.controller.js";
 
 const app = express();
 
@@ -10,6 +13,20 @@ const app = express();
 dotenv.config({
     path: "./.env"
 });
+
+//config passport js
+app.use(passport.initialize());
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      passReqToCallback: true
+    },
+    googleCallback
+  )
+);
 
 //middlewares
 app.use(express.json({limit:"16mb"}));
