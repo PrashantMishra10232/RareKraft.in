@@ -1,20 +1,44 @@
 import React from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Bookmark, CircleUserRound, LogOut, Search,ShoppingCart, User, User2 } from 'lucide-react';
+import { Bookmark, CircleUserRound, LogOutIcon, Search, ShoppingCart, User, User2 } from 'lucide-react';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
+import { useDispatch, useSelector } from 'react-redux';
+import axiosInstance from '@/utils/axiosInstance';
+import { USER_API_ENDPOINT } from '@/utils/constant';
+import { logout } from '@/redux/authSlice';
+import { persistor } from '@/redux/store';
+import { toast } from 'sonner';
 
 function Navbar() {
-    let user = {
-        role: "Seller",
-        name:"Prashant",
-        avatar: "https://res.cloudinary.com/dlqas2glz/image/upload/v1737094806/Job_Portal/Profile_Photos/tvkqnsoov94mdfsizqt8.jpg",
-        email:"prashantmishra10232@gmail.com"
-    };
+    const { user } = useSelector(store => store.auth)
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const logoutHandler = async () => {
+        try {
+            const res = await axiosInstance.post(`${USER_API_ENDPOINT}/logout`, {}, {
+                withCredentials: true,
+            });
+            if (res.data.success) {
+                dispatch(logout());
+                await persistor.purge();
+                navigate("/");
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            console.error("Error Response:", error.response);
+            const errorMessage = error.response?.data?.message || error.message || "Something went wrong!";
+            toast.error(errorMessage);
+        }
+    }
+
     return (
         <div className='bg-white'>
-            <div className='sm:px-35 sm:py-7 p-3 flex justify-between items-center'>
+            <div className='md:px-35 sm:px-10 sm:py-7 p-3 flex justify-between items-center'>
                 {/* Mobile Sidebar */}
                 <div className="sm:hidden flex items-center">
                     <button
@@ -72,7 +96,7 @@ function Navbar() {
                     </div>
                     {!user ? (
                         <div>
-                            <Link to="/login" className='cursor-pointer'><User /></Link>
+                            <Link to="/signup" className='cursor-pointer'><User /></Link>
                         </div>
                     ) : (
                         <Popover>
@@ -107,8 +131,8 @@ function Navbar() {
                                     }
 
                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                        <LogOut />
-                                        <Button variant='link' className='cursor-pointer'>Logout</Button>
+                                        <LogOutIcon/>
+                                        <Button variant='link' onClick={logoutHandler}className='cursor-pointer'>Logout</Button>
                                     </div>
                                 </div>
                             </PopoverContent>

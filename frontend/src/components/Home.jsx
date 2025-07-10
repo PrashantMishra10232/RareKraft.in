@@ -1,11 +1,12 @@
 import React from 'react'
 import Navbar from './shared/Navbar'
+import Footer from './shared/Footer'
 
 function Home() {
     return (
         <div>
             <Navbar />
-            <div id="heroSection" className='border border-gray-400 sm:mx-23 mx-3 flex flex-col sm:flex-row'>
+            <div id="heroSection" className='border border-gray-400 md:mx-23 sm:mx-10 mx-3 flex flex-col sm:flex-row'>
                 <div className='sm:w-1/2 w-full border-r-gray-400 flex flex-col justify-center items-center py-10 sm:py-0 '>
                     <div className='flex items-center gap-3'>
                         <p className='w-8 md:w-11 h-[2px] bg-[#414141]'></p>
@@ -24,13 +25,14 @@ function Home() {
             </div>
             <div id="latest" className='sm:mx-23 mx-3 py-15 sm:py-20'>
                 <div className='flex items-center justify-start sm:justify-center gap-3'>
-                    <h1 className='text-3xl text-gray-500 font-semibold'>LATEST <span className='text-gray-800'>COLLECTIONS</span></h1>
+                    <h1 className='sm:text-3xl text-[1.7rem] text-gray-500 font-bold sm:font-semibold'>LATEST <span className='text-gray-800'>COLLECTIONS</span></h1>
                     <p className='w-12 bg-[#414141] sm:w-15 h-[1px] sm:h-[3px] '></p>
                 </div>
-                <p className='text-gray-800 text-center my-4 mx-6'>Chlothzy's latest collection is where elegance meets trand. Fashion that speaks your style.</p>
+                <p style={{ fontFamily: 'Prata, serif' }} className='text-gray-800 text-center my-4 mx-6'>Chlothzy's latest collection is where elegance meets trand. Fashion that speaks your style.</p>
 
                 <div></div>
             </div>
+            <Footer/>
         </div>
     )
 }
