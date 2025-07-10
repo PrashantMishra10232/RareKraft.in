@@ -12,7 +12,7 @@
 
 **4. 📦 Order Management: Place orders and view order history.**
 
-**5. 💳 Payment Integration: Support for [Stripe/PayPal].**
+**5. 💳 Payment Integration: Support for [Razorpay].**
 
 **6. 📱 Responsive Design: Fully optimized for both desktop and mobile devices.**
 
