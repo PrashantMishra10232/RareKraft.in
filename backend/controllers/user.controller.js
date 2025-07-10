@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import validator from "validator";
 import redis from "../utils/redis.js";
+import axios from "axios";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -46,7 +47,7 @@ const requestOtp = asyncHandler(async (req, res) => {
 
   //check for email
   const emailRequests = await redis.get(emailKey);
-  if (emailRequests && Number(emailRequests) >= 3) {
+  if (emailRequests && Number(emailRequests) >= 10) {
     throw new ApiError(
       429,
       "Too many OTP requests for this email. Try again later."
@@ -75,7 +76,15 @@ const requestOtp = asyncHandler(async (req, res) => {
   //hashing the otp before saving to redis
   const hashedOtp = crypto.createHash("sha256").update(`${otp}`).digest("hex");
 
-  await redis.set(`otp:${email}`, hashedOtp, "EX", 15 * 60);
+  const otpSavedToRedis = await redis.set(
+    `otp:${email}`,
+    hashedOtp,
+    "EX",
+    15 * 60
+  );
+  if (!otpSavedToRedis) {
+    throw new ApiError(401, "Error saving otp to Redis");
+  }
 
   //reseting the attempts for every new request for otp
   await redis.del(`otp_attempts:email:${email}`);
@@ -99,9 +108,7 @@ const requestOtp = asyncHandler(async (req, res) => {
     -For any help! contact-prashantmishra10232@gmail.com`,
   });
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "OTP sent successfully"));
+  return res.status(200).json(new ApiResponse(200, "OTP sent successfully"));
 });
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -111,6 +118,9 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
+  // console.log("REGISTER BODY:", req.body);
+  // console.log("Email:", email);
+
   const existedUser = await User.findOne({
     $or: [{ name }, { email }],
   });
@@ -119,12 +129,12 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with email or userName already existed");
   }
 
-  const avatar = `https://ui-avatars.com/api/?name=${name
-    .split(" ")
-    .join("+")}&background=random&color=fff`;
+  const avatar = `https://ui-avatars.com/api/?name=${
+    name || "User".split(" ").join("+")
+  }&background=random&color=fff`;
 
   const userCounts = await User.countDocuments();
-  const role = userCounts === 0 ? "Admin" : "Buyer";
+  const role = userCounts === 0 ? "Seller" : "Buyer";
 
   const attemptsKey = `otp_attempts:email:${email}`;
   const attempts = await redis.get(attemptsKey);
@@ -133,8 +143,13 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(429, "Too many incorrect attempts. Try later.");
   }
 
+  // //debugging
+  // console.log("Redis Host:", process.env.REDIS_HOST);
+  // console.log("Redis Port:", process.env.REDIS_PORT);
+
   //fetching the otp from redis
   const hashedOtp = await redis.get(`otp:${email}`);
+  console.log("hashed otp:", hashedOtp);
 
   if (!hashedOtp) {
     throw new ApiError(400, "OTP expired or not requested");
@@ -206,6 +221,9 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -213,7 +231,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite:"none",
+    sameSite: "none",
   };
 
   return res
@@ -226,64 +244,62 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        loggedInUser,
+        { loggedInUser, accessToken },
         "User logged in successfully"
       )
     );
 });
 
 //google OAuth setup here
-const googleCallback = asyncHandler(
-  async (req, accessToken, refreshToken, profile, done) => {
-    const user = await User.findOne({ googleId: profile.id });
-    let role = "Student";
+const googleCallback = async (
+  req,
+  accessToken,
+  refreshToken,
+  profile,
+  done
+) => {
+  try {
+    let user = await User.findOne({ googleId: profile.id });
+    let role = "Buyer";
 
-    if (req.query.state) {
-      try {
-        const stateObj = JSON.parse(
-          Buffer.from(req.query.state, "base64").toString()
-        );
-        if (stateObj.role) role = stateObj.role;
-      } catch (error) {
-        console.error("Failed to parse state param", error);
-      }
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      role = "Seller";
     }
 
     if (!user) {
-      const imageResponse = await axios.get(profile.photo[0].value, {
-        responseType: arrayBuffer,
-      });
-
-      const fileName = `${profile.displayName.replace(/\s+/g, "_")}_photo`;
-
-      const profilePhoto = await uploadOnCloudinary(
-        imageResponse.data,
-        fileName
-      );
+      const avatar = `https://ui-avatars.com/api/?name=${
+        profile.displayName || "User".split(" ").join("+")
+      }&background=random&color=fff`;
 
       user = await User.create({
         googleId: profile.id,
-        fullName: profile.displayName,
-        email: profile.email[0].value,
-        profile: {
-          profilePhoto: profilePhoto?.url || "",
-          profilePhoto_id: profilePhoto._id,
-        },
+        name: profile.displayName,
+        email: profile.emails[0].value,
+        avatar,
+        role,
       });
-
-      done(null, user);
     }
+    done(null, user);
+  } catch (error) {
+    console.error("Error in Google callback:", error);
+    done(error, null);
   }
-);
+};
 
-const handleLoginSuccess = asyncHandler(async () => {
+const handleLoginSuccess = asyncHandler(async (req,res) => {
   const user = req.user;
 
-  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     user._id
   );
 
-  const loggedInUser = await User.findById(user._id).select("-password");
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken -resetPasswordToken -resetPasswordExpire"
+  );
 
   const encodedUser = Buffer.from(JSON.stringify(loggedInUser)).toString(
     "base64"
@@ -292,7 +308,7 @@ const handleLoginSuccess = asyncHandler(async () => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: none,
+    sameSite: "none",
   };
 
   const redirectUrl = `${process.env.CLIENT_URL}/login/success?accessToken=${accessToken}&user=${encodedUser}`;
@@ -372,13 +388,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       options,
       maxAge: 10 * 24 * 60 * 60 * 1000,
     })
-    .json(
-      new ApiResponse(
-        200,
-        { accessToken},
-        "Access Token refreshed"
-      )
-    );
+    .json(new ApiResponse(200, { accessToken }, "Access Token refreshed"));
 });
 
 const requestResetCode = asyncHandler(async (req, res) => {
@@ -389,10 +399,9 @@ const requestResetCode = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) throw new ApiError(404, "User not found");
-  const code = await user.generateResetPasswordToken();
+  const code = await user.getResetPasswordToken();
 
   //saving the code to DB
-  user.resetPasswordToken = code;
   await user.save({ validateBeforeSave: false });
 
   const options = {
@@ -402,36 +411,42 @@ const requestResetCode = asyncHandler(async (req, res) => {
   };
   await sendEmail(options);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password changed successfully"));
+  return res.status(200).json(new ApiResponse(200, {}, "Code sent to mail"));
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
   const { email, resetCode, password } = req.body;
 
   if (!email || !password || !resetCode) {
-    throw new ApiError(404, "All fields are required");
+    throw new ApiError(400, "All fields are required");
   }
 
   const user = await User.findOne({ email });
   if (!user) throw new ApiError(404, "User not found");
 
   //hash the code to comapre it
-  const hashedCode = crypto.hash("sha256").update(resetCode).digest("hex"); //.digest finalize the hashing and return it in hexadecimal format as i am usind 'hex' can use different formats
+  const hashedCode = crypto
+    .createHash("sha256")
+    .update(resetCode)
+    .digest("hex"); //.digest finalize the hashing and return it in hexadecimal format as i am usind 'hex' can use different formats
+  // console.log("hashed code:",hashedCode);
+
+  // console.log("reset Token in db:",user.resetPasswordToken);
+  // console.log("reset token expiry:",user.resetPasswordExpire)
+  // console.log("time:",Date.now());
 
   if (
     hashedCode !== user.resetPasswordToken ||
-    Date.now() > user.resetPasswordTokenExpiry
+    Date.now() > user.resetPasswordExpire
   ) {
     throw new ApiError(400, "Invalid or expired reset code");
   }
 
   user.password = password;
   user.resetPasswordToken = undefined;
-  user.resetPasswordTokenExpiry = undefined;
+  user.resetPasswordExpire = undefined;
 
-  await user.save().select("-password");
+  await user.save();
 
   return res
     .status(200)
@@ -565,5 +580,4 @@ export {
   updateUserProfile,
   resetPassword,
   requestResetCode,
-  resetPassword,
 };

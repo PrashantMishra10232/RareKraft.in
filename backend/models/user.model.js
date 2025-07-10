@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, "Please Enter Your Password"],
+        // required: [true, "Please Enter Your Password"],
         minLength: [8, "Password should be greater than 8 characters"],
         select: false,
     },
@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
         type:String,
         select:false
     },
+    googleId:String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 },{
@@ -58,7 +59,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
 
 userSchema.methods.getResetPasswordToken = async function(){
     // Generating Token
-    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetToken = crypto.randomBytes(6).toString("hex");
   
     // Hashing and adding resetPasswordToken to userSchema
     this.resetPasswordToken = crypto
