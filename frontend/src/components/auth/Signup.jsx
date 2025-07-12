@@ -78,7 +78,7 @@ function Signup() {
     } catch (error) {
       console.log("Axios Error:", error);
       console.log("Error Response Data:", error.response?.data);
-      console.log("Error Response Data Message:", error.response?.data?.message);
+      // console.log("Error Response Data Message:", error.response?.data?.message);
 
       const errorMessage = error.response?.data?.message || "Something went wrong! Please try again.";
 

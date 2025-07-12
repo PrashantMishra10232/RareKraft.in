@@ -9,6 +9,10 @@ import axios from "axios"
 import { USER_API_ENDPOINT } from "./utils/constant"
 import { setToken } from "./redux/authSlice"
 import LoginSuccess from "./components/auth/LoginSuccess"
+import ProductPage from "./components/admin/ProductPage"
+import OrdersPage from "./components/admin/OrdersPage"
+import ProtectedRoute from "./components/admin/ProtectedRoute"
+import Dashboard from "./components/admin/Dashboard"
 
 const appRouter = createBrowserRouter([
   {
@@ -30,6 +34,21 @@ const appRouter = createBrowserRouter([
   {
     path:"/forgotPassword",
     element:<ForgotPasswordPage/>
+  },
+
+
+  //for seller/admin
+  {
+    path:"/admin/dashboard",
+    element:<ProtectedRoute><Dashboard/></ProtectedRoute>
+  },
+  {
+    path:"/admin/productPage",
+    element:<ProtectedRoute><ProductPage/></ProtectedRoute>
+  },
+  {
+    path:"/admin/orderPage",
+    element:<ProtectedRoute><OrdersPage/></ProtectedRoute>
   }
 ])
 

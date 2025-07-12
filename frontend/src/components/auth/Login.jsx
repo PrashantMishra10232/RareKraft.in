@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../shared/Navbar'
 import Footer from '../shared/Footer'
 import { Input } from '../ui/input'
@@ -40,11 +40,7 @@ function Login() {
 
       if (res.data.success) {
         dispatch(setUser(res.data.data.loggedInUser));
-        dispatch(setToken(res.data.data.accessToken));
-        console.log("loggedIn data:", res.data.data.loggedInUser);
-        console.log("loggedIn data2:", res.data.data);
-        console.log("loggedIn data message:", res.data.message);
-        console.log("loggedIn token data:", res.data.data.accessToken);
+        dispatch(setToken(res.data.data.accessToken));       
 
         localStorage.setItem("loggedInUser", JSON.stringify(res.data.data.loggedInUser))
 
@@ -63,6 +59,13 @@ function Login() {
       dispatch(setLoading(false))
     }
   }
+
+  useEffect(() => {
+    if (!user) { navigate("/login") }
+    else if (user && user.role === "Buyer") {
+      navigate("/")
+    }
+  }, [user, navigate])
 
   return (
     <div>
