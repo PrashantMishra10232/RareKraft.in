@@ -43,13 +43,13 @@ router.route("/me/update").put(isAuthenticatedUser, updateUserProfile);
 
 router
   .route("/admin/users")
-  .get(isAuthenticatedUser, authorizeRole("admin"), getAllUsers);
+  .get(isAuthenticatedUser, authorizeRole("Seller"), getAllUsers);
 
 router
   .route("/admin/user/:id")
-  .get(isAuthenticatedUser, authorizeRole("admin"), getUser)
-  .put(isAuthenticatedUser, authorizeRole("admin"), updateRole)
-  .delete(isAuthenticatedUser, authorizeRole("admin"), deleteUser);
+  .get(isAuthenticatedUser, authorizeRole("Seller"), getUser)
+  .put(isAuthenticatedUser, authorizeRole("Seller"), updateRole)
+  .delete(isAuthenticatedUser, authorizeRole("Seller"), deleteUser);
 
 router.get(
   "/auth/google",

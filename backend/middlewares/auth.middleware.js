@@ -22,7 +22,7 @@ export const isAuthenticatedUser = async(req, _, next)=>{
         }
     
         req.user = user;
-        console.log("Authenticated User:", req.user);
+        // console.log("Authenticated User:", req.user);
 
         next()
     } catch (error) {
