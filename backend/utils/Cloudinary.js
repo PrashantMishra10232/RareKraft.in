@@ -22,7 +22,7 @@ const uploadOnCloudinary = async(fileBuffer, originalname)=>{
         }, (error, result) => {
             if (error) {
                 console.error("Error uploading file to Cloudinary:", error.message);
-                reject(null);
+                reject(error);
             } else {
                 resolve(result);
             }

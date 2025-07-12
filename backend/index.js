@@ -6,8 +6,10 @@ import connectDB from "./utils/connection.js";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20"
 import { googleCallback } from "./controllers/user.controller.js";
+import compression from "compression"
 
 const app = express();
+app.use(compression());
 
 //config
 dotenv.config({

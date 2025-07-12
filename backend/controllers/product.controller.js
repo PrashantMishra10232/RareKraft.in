@@ -18,12 +18,21 @@ const createProduct = asyncHandler(async (req, res) => {
   let imagesLinks;
   let uploadResults = [];
 
-  if (req.files && req.file.length > 0) {
-    const uploadPromises = req.files.map((file) =>
-      uploadOnCloudinary(file.buffer, file.originalname)
-    );
+  if (!req.files) {
+    return res.status(400).json({ message: "No files uploaded!" });
+  }
 
-    uploadResults = await Promise.all(uploadPromises);
+  try {
+    if (req.files && req.files.length > 0) {
+      const uploadPromises = req.files.map((file) =>
+         uploadOnCloudinary(file.buffer, file.originalname)
+      );
+  
+      uploadResults = await Promise.all(uploadPromises);
+    }
+  } catch (error) {
+    console.error("upload error:",error);
+    throw new ApiError(501,"upload issue")
   }
 
   if (!uploadResults) {
@@ -40,6 +49,7 @@ const createProduct = asyncHandler(async (req, res) => {
     description,
     price,
     images: imagesLinks,
+    seller:req.user._id
   });
 
   return res
@@ -49,7 +59,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
 //get all products
 const getAllProducts = asyncHandler(async (req, res) => {
-  const resultPerPage = 8;
+  const resultPerPage = 12;
   const productsCount = await Product.countDocuments();
 
   const apiFeature = new ApiFeatures(Product.find(), req.query)
