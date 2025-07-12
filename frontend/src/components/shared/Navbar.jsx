@@ -114,25 +114,19 @@ function Navbar() {
                                     </div>
                                 </div>
                                 <div className='flex flex-col my-2 text-gray-600'>
-                                    {
-                                        user && user.role === 'Buyer' && (
-                                            <div>
-                                                <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                    <User2 />
-                                                    <Button variant='link'><Link>View Profile</Link></Button>
-                                                </div>
-                                                <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                    <Bookmark />
-                                                    <Button variant='link'><Link>Orders</Link></Button>
-                                                </div>
-                                            </div>
-
-                                        )
-                                    }
-
+                                    <div>
+                                        <div className='flex w-fit items-center gap-2 cursor-pointer'>
+                                            <User2 />
+                                            <Button variant='link'><Link>View Profile</Link></Button>
+                                        </div>
+                                        <div className='flex w-fit items-center gap-2 cursor-pointer'>
+                                            <Bookmark />
+                                            <Button variant='link'><Link>Orders</Link></Button>
+                                        </div>
+                                    </div>
                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                        <LogOutIcon/>
-                                        <Button variant='link' onClick={logoutHandler}className='cursor-pointer'>Logout</Button>
+                                        <LogOutIcon />
+                                        <Button variant='link' onClick={logoutHandler} className='cursor-pointer'>Logout</Button>
                                     </div>
                                 </div>
                             </PopoverContent>
