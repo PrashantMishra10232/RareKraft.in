@@ -77,7 +77,7 @@ function App() {
   const { token } = useSelector((state) => state.auth)
 
   useEffect(() => {
-    if (!token) {
+    if (!token && localStorage.getItem("loggedInUser")) {
       const refreshToken = async () => {
         try {
           const res = await axios.post(`${USER_API_ENDPOINT}/refresh_token`, {}, {
