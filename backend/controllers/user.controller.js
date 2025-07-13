@@ -8,6 +8,7 @@ import crypto from "crypto";
 import validator from "validator";
 import redis from "../utils/redis.js";
 import axios from "axios";
+import { log } from "console";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -225,7 +226,7 @@ const loginUser = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password"
   );
 
   const options = {
@@ -353,9 +354,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
 
+    console.log("incomingRefreshToken",req.cookies.refreshToken);
+    
+
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
+  
 
   try {
     const decodedToken = jwt.verify(
@@ -374,7 +379,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
   
     const { accessToken, refreshToken: newRefreshToken } =
-      await User.generateAccessAndRefreshToken(user._id);
+      await generateAccessAndRefreshToken(user._id);
   
     user.refreshToken = newRefreshToken;
     await user.save({validateBeforeSave:false});
