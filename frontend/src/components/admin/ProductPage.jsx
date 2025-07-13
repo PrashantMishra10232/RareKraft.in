@@ -13,7 +13,6 @@ import { logout } from '@/redux/authSlice';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import axios from 'axios';
-import { setProduct } from '@/redux/productSlice';
 import getAllProducts from '@/hooks/getAllProducts';
 import ProductCard from './ProductCard';
 import { setLoading } from '@/redux/authSlice';
@@ -110,7 +109,6 @@ function ProductPage() {
         }
       )
       if (res.data.success) {
-        dispatch(setProduct(res.data.data))
         console.log("product data:", res.data.data);
         toast.success(res.data.message)
 
@@ -236,7 +234,7 @@ function ProductPage() {
 
       <div id="productsData" className='h-[500px] sm:px-18 px-4 py-2'>
         <h1 className='text-3xl font-bold py-3'>All Products</h1>
-        <div className='flex flex-wrap flex-row gap-5 border-2 border-black rounded-[8px]'>
+        <div className='grid sm:grid-cols-3 md:grid-cols-5 grid-cols-2 gap-2 border-2 p-2 border-black rounded-[8px]'>
           {
             allProducts?.map((product) => (
               <ProductCard product={product} />
