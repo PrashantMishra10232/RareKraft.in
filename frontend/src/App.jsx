@@ -13,11 +13,27 @@ import ProductPage from "./components/admin/ProductPage"
 import OrdersPage from "./components/admin/OrdersPage"
 import ProtectedRoute from "./components/admin/ProtectedRoute"
 import Dashboard from "./components/admin/Dashboard"
+import Collection from "./components/Collection"
+import Contact from "./components/Contact"
+import About from "./components/About"
+import ProductDetail from "./components/ProductDetail"
 
 const appRouter = createBrowserRouter([
   {
     path:"/",
     element:<Home/>
+  },
+  {
+    path:"/collection",
+    element:<Collection/>
+  },
+  {
+    path:"/about",
+    element:<About/>
+  },
+  {
+    path:"/contact",
+    element:<Contact/>
   },
   {
     path:"/login",
@@ -34,6 +50,10 @@ const appRouter = createBrowserRouter([
   {
     path:"/forgotPassword",
     element:<ForgotPasswordPage/>
+  },
+  {
+    path:"/details/:id",
+    element:<ProductDetail/>
   },
 
 

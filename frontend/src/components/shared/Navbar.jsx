@@ -72,10 +72,10 @@ function Navbar() {
                             </svg>
                         </button>
                         <ul className="space-y-4 text-gray-700 font-semibold">
-                            <li><NavLink to="/" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>HOME</NavLink></li>
-                            <li><NavLink to="#" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>COLLECTION</NavLink></li>
-                            <li><NavLink to="#" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>ABOUT</NavLink></li>
-                            <li><NavLink to="#" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>CONTACT</NavLink></li>
+                            <li><NavLink  to="/" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>HOME</NavLink></li>
+                            <li><NavLink  to="/collection" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>COLLECTION</NavLink></li>
+                            <li><NavLink  to="/about" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>ABOUT</NavLink></li>
+                            <li><NavLink  to="/contact" onClick={() => document.getElementById('mobile-sidebar').classList.add('hidden')}>CONTACT</NavLink></li>
                         </ul>
                     </div>
                 </div>
@@ -84,10 +84,10 @@ function Navbar() {
                 </div>
                 <div id="menu" className='flex items-center'>
                     <ul className='sm:flex hidden justify-between items-center gap-4 text-gray-700 font-semibold'>
-                        <li><NavLink to="/">HOME</NavLink></li>
-                        <li><NavLink>COLLECTION</NavLink></li>
-                        <li><NavLink>ABOUT</NavLink></li>
-                        <li><NavLink>CONTACT</NavLink></li>
+                        <li><NavLink className={({isActive})=>isActive ? "underline decoration-2 underline-offset-4" : "text-gray-700"} to="/">HOME</NavLink></li>
+                        <li><NavLink className={({isActive})=>isActive ? "underline decoration-2 underline-offset-4" : "text-gray-700"} to="/collection">COLLECTION</NavLink></li>
+                        <li><NavLink className={({isActive})=>isActive ? "underline decoration-2 underline-offset-4" : "text-gray-700"} to="/about">ABOUT</NavLink></li>
+                        <li><NavLink className={({isActive})=>isActive ? "underline decoration-2 underline-offset-4" : "text-gray-700"} to="/contact">CONTACT</NavLink></li>
                     </ul>
                 </div>
                 <div className='flex justify-between gap-4'>

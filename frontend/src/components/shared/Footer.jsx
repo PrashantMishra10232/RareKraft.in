@@ -4,8 +4,8 @@ import { NavLink } from 'react-router'
 
 function Footer() {
     return (
-        <div className='sm:flex flex-col md:mx-23 sm:mx-10 border-3 border-green -600'>
-            <div className='sm:flex flex-row border-2 border-yellow-600'>
+        <div className='sm:flex flex-col md:mx-23 sm:mx-10'>
+            <div className='sm:flex flex-row'>
                 <div id='1' className='w-full sm:w-1/2 row-span-1'>
                     <div>
                         <img src="https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png" alt="@Chlothzy" className='w-[150px] h-[150px] ml-2' />
@@ -20,9 +20,9 @@ function Footer() {
                         <h1 className='text-2xl font-bold sm:font-semibold mt-4 mb-4 sm:mt-auto sm:text-xl md:text-2xl '>COMPANY</h1>
                         <ul style={{ fontFamily: "Roboto, sans-serif" }} className='text-gray-500 mb-8 sm:text-sm md:text-base'>
                             <li><NavLink to="/">Home</NavLink></li>
-                            <li><NavLink>About Us</NavLink></li>
-                            <li><NavLink>Delivery</NavLink></li>
-                            <li><NavLink>Privacy Policy</NavLink></li>
+                            <li><NavLink to="/about">About Us</NavLink></li>
+                            <li><NavLink to="#">Delivery</NavLink></li>
+                            <li><NavLink to="#">Privacy Policy</NavLink></li>
                         </ul>
                     </div>
 
