@@ -58,16 +58,16 @@ function ProductDetail() {
         <div>
             <Navbar />
             <div className="flex flex-col md:flex-row gap-6 md:gap-10 px-4 py-8 max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row gap-4 w-full md:w-1/2">
-
+                {product?.images?.length > 0 && (
+                    <div className="flex flex-col md:flex-row gap-4 w-full md:w-1/2">
                     <div className="flex md:flex-col gap-2 md:w-[100px]">
                         <img
-                            src={product.images[0].url}
+                            src={product?.images[0]?.url}
                             alt="Thumbnail Front"
                             className="w-20 h-24 object-cover border rounded cursor-pointer"
                         />
                         <img
-                            src={product.images[0].url}
+                            src={product?.images[0]?.url}
                             alt="Thumbnail Back"
                             className="w-20 h-24 object-cover border rounded cursor-pointer"
                         />
@@ -75,12 +75,14 @@ function ProductDetail() {
 
                     <div className="flex-1">
                         <img
-                            src={product.images[0].url}
+                            src={product?.images[0]?.url}
                             alt="Noir Nights Mini Bodycon"
                             className="w-full h-auto object-cover rounded"
                         />
                     </div>
                 </div>
+                )}
+                
 
                 <div className="flex-1 space-y-4">
                     <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
