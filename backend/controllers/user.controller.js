@@ -357,38 +357,45 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized request");
   }
 
-  const decodedToken = jwt.verify(
-    incomingRefreshToken,
-    process.env.REFRESH_TOKEN_SECRET
-  );
-
-  const user = await User.findById(decodedToken?._id);
-
-  if (!user) {
-    throw new ApiError(401, "Invalid refresh token");
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+  
+    const user = await User.findById(decodedToken?._id);
+  
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+  
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "RefreshToken is expired or used");
+    }
+  
+    const { accessToken, refreshToken: newRefreshToken } =
+      await User.generateAccessAndRefreshToken(user._id);
+  
+    user.refreshToken = newRefreshToken;
+    await user.save({validateBeforeSave:false});
+  
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    };
+  
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, { options, maxAge: 60 * 60 * 1000 })
+      .cookie("refreshToken", newRefreshToken, {
+        options,
+        maxAge: 10 * 24 * 60 * 60 * 1000,
+      })
+      .json(new ApiResponse(200, { accessToken }, "Access Token refreshed"));
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
   }
-
-  if (incomingRefreshToken !== user?.refreshToken) {
-    throw new ApiError(401, "RefreshToken is expired or used");
-  }
-
-  const { accessToken, newRefreshToken } =
-    await User.generateAccessAndRefreshToken(user._id);
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  };
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, { options, maxAge: 60 * 60 * 1000 })
-    .cookie("refreshToken", newRefreshToken, {
-      options,
-      maxAge: 10 * 24 * 60 * 60 * 1000,
-    })
-    .json(new ApiResponse(200, { accessToken }, "Access Token refreshed"));
 });
 
 const requestResetCode = asyncHandler(async (req, res) => {
