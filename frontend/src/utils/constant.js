@@ -6,6 +6,6 @@
 
 //for deployment
 
-export const USER_API_ENDPOINT="https://rarekraft-in.onrender.com/user"
+export const USER_API_ENDPOINT="https://rarekraft-in.onrender.com/api/v1/user"
 
-export const Product_API_ENDPOINT="https://rarekraft-in.onrender.com/product"
+export const Product_API_ENDPOINT="https://rarekraft-in.onrender.com/api/v1/product"
