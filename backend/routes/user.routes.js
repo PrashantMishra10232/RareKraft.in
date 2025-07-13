@@ -29,7 +29,7 @@ router.route("/register").post(registerUser);
 
 router.route("/login").post(loginUser);
 
-router.route("/refresh_Token").post(refreshAccessToken);
+router.route("/refresh_token").post(refreshAccessToken);
 
 router.route("/password/forgot").post(requestResetCode);
 
