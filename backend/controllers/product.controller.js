@@ -10,8 +10,22 @@ import {
 
 //create product --(seller)
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, price } = req.body;
-  if ([name, price, description].some((field) => field.trim() === "")) {
+  const { name, description, price, category } = req.body;
+  let sizes = [];
+
+  try {
+    sizes = JSON.parse(req.body.sizes);
+    if (!Array.isArray(sizes)) throw new ApiError(502,"Sizes should be an array");
+  } catch (err) {
+    throw new ApiError(400, "Invalid sizes format");
+  }
+
+  console.log("SIZES FIELDS:", req.body.sizes);
+  
+
+  if (
+    [name, price, description, category].some((field) => field.trim() === "")
+  ) {
     throw new ApiError(404, "All fields are required");
   }
 
@@ -25,14 +39,14 @@ const createProduct = asyncHandler(async (req, res) => {
   try {
     if (req.files && req.files.length > 0) {
       const uploadPromises = req.files.map((file) =>
-         uploadOnCloudinary(file.buffer, file.originalname)
+        uploadOnCloudinary(file.buffer, file.originalname)
       );
-  
+
       uploadResults = await Promise.all(uploadPromises);
     }
   } catch (error) {
-    console.error("upload error:",error);
-    throw new ApiError(501,"upload issue")
+    console.error("upload error:", error);
+    throw new ApiError(501, "upload issue");
   }
 
   if (!uploadResults) {
@@ -48,8 +62,10 @@ const createProduct = asyncHandler(async (req, res) => {
     name,
     description,
     price,
+    category,
+    sizes:sizes,
     images: imagesLinks,
-    seller:req.user._id
+    seller: req.user._id,
   });
 
   return res
@@ -75,19 +91,20 @@ const getAllProducts = asyncHandler(async (req, res) => {
 });
 
 //get all products--(admin)
-const getAdminProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find();
+// const getAdminProducts = asyncHandler(async (req, res) => {
+//   const products = await Product.find();
 
-  if (products.length === 0) {
-    throw new ApiError(404, "You don't have any products listed yet");
-  }
+//   if (products.length === 0) {
+//     throw new ApiError(404, "You don't have any products listed yet");
+//   }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, products, "Here are all our products"));
-});
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, products, "Here are all our products"));
+// });
 
 //get product details
+
 const getProductDetails = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
@@ -291,7 +308,6 @@ const getAllReviews = asyncHandler(async (req, res) => {
 export {
   createProduct,
   getAllProducts,
-  getAdminProducts,
   getProductDetails,
   updateproduct,
   deleteProduct,

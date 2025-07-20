@@ -237,7 +237,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, { ...options, maxAge: 60 * 60 * 1000 })
+    .cookie("accessToken", accessToken, { ...options, maxAge: 24 * 60 * 60 * 1000 })
     .cookie("refreshToken", refreshToken, {
       ...options,
       maxAge: 10 * 24 * 60 * 60 * 1000,
@@ -299,7 +299,7 @@ const handleLoginSuccess = asyncHandler(async (req,res) => {
   await user.save({ validateBeforeSave: false });
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken -resetPasswordToken -resetPasswordExpire"
+    "-password -resetPasswordToken -resetPasswordExpire"
   );
 
   const encodedUser = Buffer.from(JSON.stringify(loggedInUser)).toString(
@@ -316,7 +316,7 @@ const handleLoginSuccess = asyncHandler(async (req,res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, { options, maxAge: 60 * 60 * 1000 })
+    .cookie("accessToken", accessToken, { options, maxAge: 24 * 60 * 60 * 1000 })
     .cookie("refreshToken", refreshToken, {
       options,
       maxAge: 10 * 24 * 60 * 60 * 1000,
@@ -392,7 +392,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   
     return res
       .status(200)
-      .cookie("accessToken", accessToken, { options, maxAge: 60 * 60 * 1000 })
+      .cookie("accessToken", accessToken, { options, maxAge: 24 * 60 * 60 * 1000 })
       .cookie("refreshToken", newRefreshToken, {
         options,
         maxAge: 10 * 24 * 60 * 60 * 1000,

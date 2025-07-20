@@ -3,7 +3,6 @@ import {isAuthenticatedUser,authorizeRole} from "../middlewares/auth.middleware.
 import {
   createProduct,
   getAllProducts,
-  getAdminProducts,
   getProductDetails,
   updateproduct,
   deleteProduct,
@@ -20,7 +19,7 @@ router.route("/new").post(isAuthenticatedUser,upload.array("images"),authorizeRo
 
 router.route("/all").get(isAuthenticatedUser,getAllProducts);
 
-router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("Seller"),getAdminProducts);
+// router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("Seller"),getAdminProducts);
 
 router.route("/details/:id").get(isAuthenticatedUser,getProductDetails);
 

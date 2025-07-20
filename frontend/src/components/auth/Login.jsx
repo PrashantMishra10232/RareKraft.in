@@ -40,7 +40,7 @@ function Login() {
 
       if (res.data.success) {
         dispatch(setUser(res.data.data.loggedInUser));
-        dispatch(setToken(res.data.data.accessToken));       
+        dispatch(setToken(res.data.data.accessToken));
 
         localStorage.setItem("loggedInUser", JSON.stringify(res.data.data.loggedInUser))
 
@@ -70,8 +70,8 @@ function Login() {
   return (
     <div>
       <Navbar />
-      <div id="login" className=' my-30'>
-        <form onSubmit={submitHandler} className='w-[80%] sm:w-[30%] mx-auto'>
+      <div id="login" className=' my-30 w-[80%] sm:w-[30%] mx-auto'>
+        <form onSubmit={submitHandler}>
           <div className='flex justify-center items-center gap-3'>
             <h1 style={{ fontFamily: 'Prata, serif' }} className='text-3xl'>Login</h1>
             <p className='w-8 h-[1px] bg-[#414141]'></p>
@@ -107,9 +107,12 @@ function Login() {
             >Login</Button>
           }
         </form>
-        {
-          loading ? <Button className='w-full my-4'> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait</Button> : <GoogleLoginButton />
-        }
+        <div className='flex justify-center items-center'>
+          {
+            loading ? <Button className=' w-full md:w-[50%] my-4'> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait</Button> : <GoogleLoginButton />
+          }
+        </div>
+
       </div>
       <Footer />
     </div>

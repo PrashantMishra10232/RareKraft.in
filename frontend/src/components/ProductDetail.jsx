@@ -9,7 +9,7 @@ import Footer from './shared/Footer';
 import Navbar from './shared/Navbar';
 import { Skeleton } from './ui/skeleton';
 import axiosInstance from '@/utils/axiosInstance';
-import ProductCard from './admin/ProductCard';
+import ProductCard from './ProductCard';
 
 function ProductDetail() {
     const { product,allProducts } = useSelector(store => store.product)

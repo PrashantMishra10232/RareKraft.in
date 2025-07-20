@@ -5,14 +5,13 @@ import jwt from "jsonwebtoken"
 export const isAuthenticatedUser = async(req, _, next)=>{
     try {
         const token = req.cookies?.accessToken || req.header
-        ("Authorization")?.replace("Bearer ", "").trim()
+        ("Authorization")?.replace("Bearer ", "").trim()        
     
         if(!token){
             throw new ApiError(401, "Unauthorized request. No token provided.")
         }
     
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    
     
         const user = await User.findById(decodedToken?._id).select("-password")
     
@@ -21,7 +20,6 @@ export const isAuthenticatedUser = async(req, _, next)=>{
         }
     
         req.user = user;
-        // console.log("Authenticated User:", req.user);
 
         next()
     } catch (error) {

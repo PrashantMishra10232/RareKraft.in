@@ -167,9 +167,12 @@ function Signup() {
             >Signup</Button>
           }
         </form>
-        {
-          loading ? <Button className='w-full my-4'> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait</Button> : <GoogleLoginButton />
-        }
+        <div className='flex justify-center items-center'>
+          {
+            loading ? <Button className=' w-full md:w-[50%] my-4'> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait</Button> : <GoogleLoginButton />
+          }
+        </div>
+        
       </div>
       <Footer />
     </div>

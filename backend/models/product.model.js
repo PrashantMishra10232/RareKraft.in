@@ -1,5 +1,18 @@
 import mongoose from "mongoose";
 
+const sizeSchema = new mongoose.Schema({
+  size:{
+    type:String,
+    enum:["S","M","L","XL","XXL"],
+    required:true
+  },
+  quantity:{
+    type:Number,
+    required:true,
+    default:0
+  }
+})
+
 const productSchema = new mongoose.Schema(
   {
     name: {
@@ -65,8 +78,27 @@ const productSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    category: {
+      type: String,
+      enum: ["Men", "Women", "Kids"],
+    },
+
+    sizes: [sizeSchema],
   },
   { timestamps: true }
 );
+
+productSchema.pre("save",async function(next){
+  const sizeValues = this.sizes.map((s)=>s.size);
+  const hasDuplicates = new Set(sizeValues).size !== sizeValues.length;
+
+  if(hasDuplicates){
+    const err = new Error("Duplicate size entries found in product sizes.")
+    next(err);
+  }
+
+  next();
+})
 
 export const Product = mongoose.model("Product", productSchema);

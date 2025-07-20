@@ -1,4 +1,4 @@
-import { CircleUserRound, Loader2, LogOutIcon, User } from 'lucide-react';
+import { CircleUserRound, Delete, Expand, Loader2, LogOutIcon, Search, Trash2, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,20 +13,32 @@ import { logout } from '@/redux/authSlice';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import axios from 'axios';
-import getAllProducts from '@/hooks/getAllProducts';
-import ProductCard from './ProductCard';
+import useGetAllProducts from '@/hooks/useGetAllProducts';
 import { setLoading } from '@/redux/authSlice';
+import ProductCardAdmin from './ProductCardAdmin';
 
 function ProductPage() {
-  getAllProducts();
+  useGetAllProducts();
 
   const { user, loading } = useSelector(store => store.auth);
   const { allProducts } = useSelector(store => store.product);
+  const [expanded, setExpanded] = useState(false);
+
+  const [tableState, setTableState] = useState("Products")
+
+  const [sizeInput, setSizeInput] = useState({
+    size: "",
+    quantity: ""
+  })
+  const [error, setError] = useState("")
+
   const [input, setInput] = useState({
     name: "",
     description: "",
     price: "",
-    images: []
+    category: "",
+    images: [],
+    sizes: []
   })
 
   const [preview, setPreview] = useState([]);
@@ -52,6 +64,29 @@ function ProductPage() {
       toast.error(errorMessage);
     }
   }
+
+  const addSize = async (e) => {
+    e.preventDefault();
+    if (
+      !sizeInput.size || sizeInput.quantity === "" || input.sizes.find((s) => s.size == sizeInput.size)
+    ) {
+      setError("Size already added or invalid input.")
+      return;
+    }
+    setInput((prev) => ({
+      ...prev, sizes: [...prev.sizes, { ...sizeInput, quantity: Number(sizeInput.quantity) }]
+    }));
+    setSizeInput({ size: "", quantity: "" });
+    setError("");
+  }
+
+  const removeSize = (e, sizeToRemove) => {
+    e.preventDefault();
+    setInput((prev) => ({
+      ...prev,
+      sizes: prev.sizes.filter((s) => s.size !== sizeToRemove),
+    }));
+  };
 
   const fileHandler = async (e) => {
     let images = Array.from(e.target.files)
@@ -95,6 +130,8 @@ function ProductPage() {
     formData.append("name", input.name)
     formData.append("description", input.description)
     formData.append("price", input.price)
+    formData.append("category", input.category)
+    formData.append("sizes", JSON.stringify(input.sizes))
     input.images.forEach(file => {
       formData.append("images", file);
     });
@@ -116,6 +153,8 @@ function ProductPage() {
           name: "",
           description: "",
           price: "",
+          category: "",
+          sizes: [],
           images: []
         });
 
@@ -136,7 +175,7 @@ function ProductPage() {
     <div>
       <div id="navbar" className='flex justify-between sm:px-18 px-4 py-2'>
         <div id="logo">
-          <img src="https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png" alt="logo" className='w-[140px] h-[140px] border' />
+          <img src="https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png" alt="logo" className='w-[140px] h-[140px]' />
         </div>
 
         {!user ?
@@ -183,6 +222,7 @@ function ProductPage() {
             onChange={changeEvevntHandler}
             className='border border-black rounded-none'
           />
+
           <Label className="my-2 text-gray-800">Description</Label>
           <Input
             type="text"
@@ -192,15 +232,98 @@ function ProductPage() {
             onChange={changeEvevntHandler}
             className='border border-black rounded-none'
           />
-          <Label className="my-2 text-gray-800">Price</Label>
-          <Input
-            type="Number"
-            name="price"
-            value={input.price}
-            placeholder="In INR"
-            onChange={changeEvevntHandler}
-            className='border border-black rounded-none'
-          />
+
+          <div className='sm:flex justify-between items-center'>
+
+            <div id="price" className='w-[48%]'>
+              <Label className="my-2 text-gray-800">Price</Label>
+              <Input
+                type="Number"
+                name="price"
+                min="0"
+                value={input.price}
+                placeholder="In INR"
+                onChange={changeEvevntHandler}
+                className='border border-black rounded-none'
+              />
+            </div>
+
+            <div id="category" className='w-[48%]'>
+              <Label className="my-2 text-gray-800">Category</Label>
+              <select
+                name="category" id='category'
+                value={input.category}
+                className='border border-black px-2 py-1 h-9 w-full'
+                onChange={changeEvevntHandler}
+              >
+                <option value=""> Select Category </option>
+                <option value="Men"> Men </option>
+                <option value="Women"> Women </option>
+                <option value="Kids"> Kids </option>
+              </select>
+            </div>
+
+          </div>
+
+
+          <Label className="my-2 text-gray-800">Sizes</Label>
+          <select
+            name="size" id='size'
+            value={sizeInput.size}
+            className='border border-black px-2 py-1'
+            onChange={(e) => setSizeInput({ ...sizeInput, [e.target.name]: e.target.value })}
+          >
+            <option value=""> Select Size </option>
+            <option value="S"> S </option>
+            <option value="M"> M </option>
+            <option value="L"> L </option>
+            <option value="XL"> XL </option>
+            <option value="XXL"> XXL </option>
+          </select>
+
+          <div className='flex sm:flex-row flex-col sm:justify-between sm:items-end gap-2'>
+            <div>
+              <Label className="my-2 text-gray-800">Quantity</Label>
+              <input
+                type='Number'
+                id="quantity"
+                name="quantity"
+                min="0"
+                value={sizeInput.quantity}
+                placeholder='Add Quantity here'
+                onChange={(e) => setSizeInput({ ...sizeInput, [e.target.name]: e.target.value })}
+                className='border border-black rounded-none h-9 px-2'
+              />
+            </div>
+
+            <Button
+              className="w-33"
+              onClick={addSize}
+            >Add Size</Button>
+          </div>
+
+          {input.sizes.length > 0 && (
+            <div className='border-2 border-black my-4'>
+              <ul>
+                <li className='flex justify-around border-b-1'>
+                  <h2 className='font-semibold text-lg'>Size</h2>
+                  <h2 className='font-semibold text-lg'>Quantity</h2>
+                </li>
+                {input.sizes.map((sz) => (
+                  <li key={sz.size} className='flex justify-around items-center w-full py-1'>
+
+                    <div className='w-1/2 text-center'>{sz.size}</div>
+                    <div className='w-1/2 flex justify-between items-center px-2'>
+                      <span className='text-left'>{sz.quantity}</span>
+                      <Button onClick={(e) => removeSize(e, sz.size)} className="ml-2 shrink-0"><Trash2 /></Button>
+                    </div>
+
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {error && <div style={{ color: "red" }}>{error}</div>}
 
           <Label className="my-2 text-gray-800">Image</Label>
           <Input
@@ -233,14 +356,70 @@ function ProductPage() {
       </div>
 
       <div id="productsData" className='h-[500px] sm:px-18 px-4 py-2'>
-        <h1 className='text-3xl font-bold py-3'>All Products</h1>
-        <div className='grid sm:grid-cols-3 md:grid-cols-5 grid-cols-2 gap-2 border-2 p-2 border-black rounded-[8px]'>
-          {
-            allProducts?.map((product) => (
-              <ProductCard product={product} />
-            ))
-          }
+
+        <div className='flex justify-between items-center'>
+
+          <div className='relative inline-flex p-1 rounded-lg mb-2'>
+            <button
+              onClick={() => setTableState("Products")}
+              className={`px-4 py-2 font-bold text-2xl relative z-10 transition-colors duration-300 cursor-pointer ${tableState === "Products" ? "text-black" : "text-gray-500"}`}>
+              All Products
+            </button>
+            <span className='relative z-10 font-bold text-2xl py-2'>/</span>
+            <button
+              onClick={() => setTableState("Orders")}
+              className={`px-4 py-2 font-bold text-2xl relative z-10 transition-colors duration-300 cursor-pointer ${tableState === "Orders" ? "text-black" : "text-gray-500"}`}>
+              All Orders
+            </button>
+            <div
+              className={`absolute top-0 left-0 h-full w-1/2 rounded-lg bg-gray-300/30 backdrop-blur-sm transition-all duration-300 ${tableState === "Products" ? "translate-x-0" : "translate-x-full"}`}
+            ></div>
+          </div>
+
+          <div id="search"
+            className={`flex items-center border ${expanded ? "border-black" : "border-transparent"}
+          rounded-full px-3 transition-all duration-300 w-${expanded ? "[250px]" : "48px"}
+          bg-white overflow-hidden
+          `}
+          >
+            <input
+              type="text"
+              placeholder="Search.. Products | Orders"
+              className={`
+          flex-grow
+          outline-none
+          text-black
+          text-sm
+          transition-all duration-300
+          ${expanded ? "opacity-100 ml-2" : "opacity-0 w-0"}
+          bg-transparent
+        `}
+            />
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className={`p-1 transition-all duration-300 border-2 border-gray-500 rounded-full
+              ${expanded ? "bg-black/0 border-transparent" : "bg-black border-gray-500"}
+              `}>
+              <Search
+                size={25}
+                className={expanded ? "text-black" : "text-gray-500"}
+              />
+            </button>
+          </div>
         </div>
+
+
+
+        {tableState === "Products" &&
+          (<div className='grid sm:grid-cols-3 md:grid-cols-5 grid-cols-2 gap-2 border-2 p-2 border-black rounded-[8px]'>
+            {
+              allProducts?.map((product) => (
+                <ProductCardAdmin product={product} />
+              ))
+            }
+          </div>)
+        }
+
       </div>
     </div>
   )

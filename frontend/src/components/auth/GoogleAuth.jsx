@@ -7,7 +7,7 @@ const GoogleLoginButton = () => {
     };
 
     return (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center md:w-[50%]">
             <button
             onClick={handleGoogleLogin}
             className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded hover:bg-red-600"

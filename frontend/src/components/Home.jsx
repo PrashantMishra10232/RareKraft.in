@@ -3,7 +3,7 @@ import Navbar from './shared/Navbar'
 import Footer from './shared/Footer'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
-import ProductCard from './admin/ProductCard';
+import ProductCard from './ProductCard';
 import { Button } from './ui/button';
 
 function Home() {
@@ -58,7 +58,7 @@ function Home() {
                 </div>
                 <p style={{ fontFamily: 'Prata, serif' }} className='text-gray-800 text-center my-4 mx-6'>Our best seller — loved by many, styled by all. Elevate your look with timeless charm.</p>
                 <div className='grid sm:grid-cols-3 md:grid-cols-5 grid-cols-2 gap-2'>
-                    {allProducts.length <= 0 ? <span>No Products to show</span> : allProducts.slice(0, 6).map((product) => <ProductCard key={product.id} product={product} />)}
+                    {allProducts.length <= 0 ? <span>No Products to show</span> : allProducts.slice(0, 5).map((product) => <ProductCard key={product.id} product={product} />)}
                 </div>
             </div>
 
