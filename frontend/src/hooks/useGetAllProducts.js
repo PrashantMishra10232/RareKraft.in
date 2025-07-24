@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 
 
-function getAllProducts() {
+function useGetAllProducts() {
     const dispatch = useDispatch();
     useEffect(()=>{
         const fetchAllProducts = async()=>{
@@ -34,4 +34,4 @@ function getAllProducts() {
     },[])
 }
 
-export default getAllProducts;
+export default useGetAllProducts;

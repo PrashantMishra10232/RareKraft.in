@@ -17,6 +17,9 @@ import Collection from "./components/Collection"
 import Contact from "./components/Contact"
 import About from "./components/About"
 import ProductDetail from "./components/ProductDetail"
+import ProfilePage from "./components/ProfilePage"
+import AddressUpdateForm from "./components/AddressUpdateForm"
+import ProfileDetailPage from "./components/ProfileDetailPage"
 
 const appRouter = createBrowserRouter([
   {
@@ -54,6 +57,18 @@ const appRouter = createBrowserRouter([
   {
     path:"/details/:id",
     element:<ProductDetail/>
+  },
+  {
+    path:"/profilePage",
+    element: <ProfilePage/>
+  },
+  {
+    path:"/address",
+    element: <AddressUpdateForm/>
+  },
+  {
+    path:"/profileDetails",
+    element:<ProfileDetailPage/>
   },
 
 

@@ -5,8 +5,10 @@ import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import { Button } from './ui/button';
+import useGetAllProducts from '@/hooks/useGetAllProducts';
 
 function Home() {
+    useGetAllProducts();
     const { allProducts } = useSelector(store => store.product);
     const { user } = useSelector(store => store.auth);
     const navigate = useNavigate();

@@ -5,10 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import validator from "validator";
 import redis from "../utils/redis.js";
-import axios from "axios";
-import { log } from "console";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -225,9 +222,7 @@ const loginUser = asyncHandler(async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
-  const loggedInUser = await User.findById(user._id).select(
-    "-password"
-  );
+  const loggedInUser = await User.findById(user._id).select("-password");
 
   const options = {
     httpOnly: true,
@@ -237,7 +232,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, { ...options, maxAge: 24 * 60 * 60 * 1000 })
+    .cookie("accessToken", accessToken, {
+      ...options,
+      maxAge: 24 * 60 * 60 * 1000,
+    })
     .cookie("refreshToken", refreshToken, {
       ...options,
       maxAge: 10 * 24 * 60 * 60 * 1000,
@@ -288,7 +286,7 @@ const googleCallback = async (
   }
 };
 
-const handleLoginSuccess = asyncHandler(async (req,res) => {
+const handleLoginSuccess = asyncHandler(async (req, res) => {
   const user = req.user;
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
@@ -316,7 +314,10 @@ const handleLoginSuccess = asyncHandler(async (req,res) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, { options, maxAge: 24 * 60 * 60 * 1000 })
+    .cookie("accessToken", accessToken, {
+      options,
+      maxAge: 24 * 60 * 60 * 1000,
+    })
     .cookie("refreshToken", refreshToken, {
       options,
       maxAge: 10 * 24 * 60 * 60 * 1000,
@@ -354,45 +355,46 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
 
-    console.log("incomingRefreshToken",req.cookies.refreshToken);
-    
+  // console.log("incomingRefreshToken", req.cookies.refreshToken);
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
-  
 
   try {
     const decodedToken = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-  
+
     const user = await User.findById(decodedToken?._id);
-  
+
     if (!user) {
       throw new ApiError(401, "Invalid refresh token");
     }
-  
+
     if (incomingRefreshToken !== user?.refreshToken) {
       throw new ApiError(401, "RefreshToken is expired or used");
     }
-  
+
     const { accessToken, refreshToken: newRefreshToken } =
       await generateAccessAndRefreshToken(user._id);
-  
+
     user.refreshToken = newRefreshToken;
-    await user.save({validateBeforeSave:false});
-  
+    await user.save({ validateBeforeSave: false });
+
     const options = {
       httpOnly: true,
       secure: true,
       sameSite: "none",
     };
-  
+
     return res
       .status(200)
-      .cookie("accessToken", accessToken, { options, maxAge: 24 * 60 * 60 * 1000 })
+      .cookie("accessToken", accessToken, {
+        options,
+        maxAge: 24 * 60 * 60 * 1000,
+      })
       .cookie("refreshToken", newRefreshToken, {
         options,
         maxAge: 10 * 24 * 60 * 60 * 1000,
@@ -472,11 +474,11 @@ const getUserDetails = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  return res.status(200).json(new ApiResponse(200, { user }));
+  return res.status(200).json(new ApiResponse(200, user, "user data fetched"));
 });
 
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, phoneNo, alternatePhoneNo, gender, dateOfBirth } = req.body;
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
@@ -484,6 +486,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       $set: {
         name: name,
         email: email,
+        phoneNo,
+        alternatePhoneNo,
+        gender,
+        dateOfBirth
       },
     },
     {
@@ -494,7 +500,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { user }, "User deatils updated successfully"));
+    .json(new ApiResponse(200, user, "User deatils updated successfully"));
 });
 
 //get all users(admin)
@@ -524,42 +530,42 @@ const getUser = asyncHandler(async (req, res) => {
 });
 
 //update user role(admin)
-const updateRole = asyncHandler(async (req, res) => {
-  const { name, email, role } = req.body;
+// const updateRole = asyncHandler(async (req, res) => {
+//   const { name, email, role } = req.body;
 
-  const allowedRoles = ["user", "admin"];
-  if (role && !allowedRoles.includes(role)) {
-    throw new ApiError(400, "Invalid role provided");
-  }
+//   const allowedRoles = ["user", "admin"];
+//   if (role && !allowedRoles.includes(role)) {
+//     throw new ApiError(400, "Invalid role provided");
+//   }
 
-  if (!name && !email && !role) {
-    throw new ApiError(
-      400,
-      "At least one field (name, email, role) must be provided"
-    );
-  }
+//   if (!name && !email && !role) {
+//     throw new ApiError(
+//       400,
+//       "At least one field (name, email, role) must be provided"
+//     );
+//   }
 
-  if (email && !validator.isEmail(email)) {
-    throw new ApiError(400, "Please provide a valid email");
-  }
+//   if (email && !validator.isEmail(email)) {
+//     throw new ApiError(400, "Please provide a valid email");
+//   }
 
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { name, email, role },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
+//   const user = await User.findByIdAndUpdate(
+//     req.params.id,
+//     { name, email, role },
+//     {
+//       new: true,
+//       runValidators: true,
+//     }
+//   );
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
+//   if (!user) {
+//     throw new ApiError(404, "User not found");
+//   }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { user }, "Role updated successfully"));
-});
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, { user }, "Role updated successfully"));
+// });
 
 //delete user(admin)
 const deleteUser = asyncHandler(async (req, res) => {
@@ -576,6 +582,106 @@ const deleteUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "User deleted successfully"));
 });
 
+const addAddress = asyncHandler(async (req, res) => {
+  const {
+    name,
+    address,
+    city,
+    state,
+    country,
+    pinCode,
+    phoneNo,
+    typeOfAddress,
+    isDefault,
+  } = req.body;
+
+  if (
+    [name, address, city, state, country, pinCode, phoneNo, typeOfAddress].some(
+      (field) => field?.trim() === ""
+    )
+  ) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const user = await User.findById(req.user.id).select("-password");
+  if (!user) {
+    throw new ApiError(404, "user not found");
+  }
+
+  if (isDefault) {
+    user.shippingAddresses.forEach((adr) => (adr.isDefault = false));
+  }
+
+  user.shippingAddresses.sort((a, b) => b.isDefault - a.isDefault);
+
+  user.shippingAddresses.push({
+    name,
+    address,
+    city,
+    state,
+    country,
+    pinCode,
+    phoneNo,
+    typeOfAddress,
+    isDefault: !!isDefault,
+  });
+
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "address saved successfully"));
+});
+
+const removeAddress = asyncHandler(async (req, res) => {
+  const addressId = req.params.id;
+  if (!addressId) {
+    throw new ApiError(404, "No such addressId found");
+  }
+  console.log("address:", addressId);
+
+  await User.updateOne(
+    { _id: req.user.id },
+    { $pull: { shippingAddresses: { _id: addressId } } }
+  );
+
+  return res.status(200).json(new ApiResponse(204, "Address got deleted"));
+});
+
+const updateAddress = asyncHandler(async (req, res) => {
+  const addressId = req.params.id;
+
+  const { name, address, country, pinCode, phoneNo, typeOfAddress, isDefault } =
+    req.body;
+
+  await User.updateOne(
+    { _id: req.user?._id, "shippingAddresses._id": addressId },
+    { $set: { 
+      "shippingAddresses.$.name": name,  
+      "shippingAddresses.$.address": address,  
+      "shippingAddresses.$.country": country,  
+      "shippingAddresses.$.pinCode": pinCode,  
+      "shippingAddresses.$.phoneNo": phoneNo,  
+      "shippingAddresses.$.typeOfAddress": typeOfAddress,  
+      "shippingAddresses.$.isDefault": isDefault,  
+    } }
+  );
+
+  if (isDefault) {
+    await User.updateMany(
+      { _id:req.user.id},
+      {
+        $set: { "shippingAddresses.$[elem].isDefault":false }
+      },
+      {
+        $arrayFilters:[{"elem._id":{$ne:addressId}}]
+      }
+    );
+  }
+
+  return res.status(200).json(new ApiResponse(200, "Address got updated"));
+});
+
 export {
   requestOtp,
   registerUser,
@@ -588,8 +694,10 @@ export {
   getUser,
   getUserDetails,
   refreshAccessToken,
-  updateRole,
   updateUserProfile,
   resetPassword,
   requestResetCode,
+  addAddress,
+  removeAddress,
+  updateAddress,
 };

@@ -14,10 +14,12 @@ import {
   updateUserProfile,
   getAllUsers,
   getUser,
-  updateRole,
   deleteUser,
   handleLoginSuccess,
   refreshAccessToken,
+  addAddress,
+  removeAddress,
+  updateAddress,
 } from "../controllers/user.controller.js";
 import passport from "passport";
 
@@ -39,16 +41,15 @@ router.route("/logout").post(isAuthenticatedUser, logOut);
 
 router.route("/me").get(isAuthenticatedUser, getUserDetails);
 
-router.route("/me/update").put(isAuthenticatedUser, updateUserProfile);
+router.route("/me/update").patch(isAuthenticatedUser, updateUserProfile);
 
 router
   .route("/admin/users")
   .get(isAuthenticatedUser, authorizeRole("Seller"), getAllUsers);
 
 router
-  .route("/admin/user/:id")
+  .route("/getUser/:id")
   .get(isAuthenticatedUser, authorizeRole("Seller"), getUser)
-  .put(isAuthenticatedUser, authorizeRole("Seller"), updateRole)
   .delete(isAuthenticatedUser, authorizeRole("Seller"), deleteUser);
 
 router.get(
@@ -64,5 +65,9 @@ router.route("/auth/google/callback").get(
   }),
   handleLoginSuccess
 );
+
+router.route("/addAddress").post(isAuthenticatedUser,addAddress)
+router.route("/removeAddress/:id").delete(isAuthenticatedUser,removeAddress)
+router.route("/updateAddress/:id").patch(isAuthenticatedUser,updateAddress)
 
 export default router;

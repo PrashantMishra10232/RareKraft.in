@@ -20,6 +20,7 @@ export const storedAuthData = () => {
 const initialState = {
     user:storedAuthData() || null,
     token: null,
+    address:[],
     loading: false, 
 };
 
@@ -38,6 +39,9 @@ const authSlice = createSlice({
             state.token = null;
             localStorage.removeItem("loggedInUser");
         },
+        setAddress:(state,action)=>{
+            state.address=action.payload;
+        },
         setToken:(state,action)=>{
             state.token=action.payload;
         }
@@ -45,5 +49,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { setLoading, setUser, logout, setToken} = authSlice.actions;
+export const { setLoading, setUser, logout, setToken, setAddress} = authSlice.actions;
 export default authSlice.reducer;
