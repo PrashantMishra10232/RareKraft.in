@@ -478,7 +478,8 @@ const getUserDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const { name, email, phoneNo, alternatePhoneNo, gender, dateOfBirth } = req.body;
+  const { name, email, phoneNo, alternatePhoneNo, gender, dateOfBirth } =
+    req.body;
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
@@ -489,7 +490,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         phoneNo,
         alternatePhoneNo,
         gender,
-        dateOfBirth
+        dateOfBirth,
       },
     },
     {
@@ -627,10 +628,9 @@ const addAddress = asyncHandler(async (req, res) => {
   });
 
   await user.save({ validateBeforeSave: false });
-
   return res
     .status(200)
-    .json(new ApiResponse(200, "address saved successfully"));
+    .json(new ApiResponse(200, user, "address saved successfully"));
 });
 
 const removeAddress = asyncHandler(async (req, res) => {
@@ -645,7 +645,11 @@ const removeAddress = asyncHandler(async (req, res) => {
     { $pull: { shippingAddresses: { _id: addressId } } }
   );
 
-  return res.status(200).json(new ApiResponse(204, "Address got deleted"));
+  const user = await User.findById(req.user.id).select("shippingAddresses");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(204, user, "Address got deleted"));
 });
 
 const updateAddress = asyncHandler(async (req, res) => {
@@ -654,32 +658,44 @@ const updateAddress = asyncHandler(async (req, res) => {
   const { name, address, country, pinCode, phoneNo, typeOfAddress, isDefault } =
     req.body;
 
-  await User.updateOne(
-    { _id: req.user?._id, "shippingAddresses._id": addressId },
-    { $set: { 
-      "shippingAddresses.$.name": name,  
-      "shippingAddresses.$.address": address,  
-      "shippingAddresses.$.country": country,  
-      "shippingAddresses.$.pinCode": pinCode,  
-      "shippingAddresses.$.phoneNo": phoneNo,  
-      "shippingAddresses.$.typeOfAddress": typeOfAddress,  
-      "shippingAddresses.$.isDefault": isDefault,  
-    } }
-  );
-
   if (isDefault) {
-    await User.updateMany(
-      { _id:req.user.id},
+    await User.updateOne(
+      { _id: req.user.id },
       {
-        $set: { "shippingAddresses.$[elem].isDefault":false }
-      },
-      {
-        $arrayFilters:[{"elem._id":{$ne:addressId}}]
+        $set: { "shippingAddresses.$[].isDefault": false },
       }
     );
   }
 
-  return res.status(200).json(new ApiResponse(200, "Address got updated"));
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.user?._id, "shippingAddresses._id": addressId },
+    {
+      $set: {
+        "shippingAddresses.$.name": name,
+        "shippingAddresses.$.address": address,
+        "shippingAddresses.$.country": country,
+        "shippingAddresses.$.pinCode": pinCode,
+        "shippingAddresses.$.phoneNo": phoneNo,
+        "shippingAddresses.$.typeOfAddress": typeOfAddress,
+        "shippingAddresses.$.isDefault": isDefault,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  
+  if(!updatedUser){
+    throw new ApiError(404, "User or address not found");
+  }
+
+  updatedUser.shippingAddresses.sort((a,b)=>b.isDefault - a.isDefault)
+
+  
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Address got updated"));
 });
 
 export {

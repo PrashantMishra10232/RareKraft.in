@@ -61,16 +61,13 @@ function ProductDetail() {
                 {product?.images?.length > 0 && (
                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-1/2">
                     <div className="flex md:flex-col gap-2 md:w-[100px]">
-                        <img
-                            src={product?.images[0]?.url || "https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png"}
+                        {product.images.map((img)=>(
+                            <img
+                            src={img?.url || "https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png"}
                             alt="Thumbnail Front"
                             className="w-20 h-24 object-cover border rounded cursor-pointer"
                         />
-                        <img
-                            src={product?.images[0]?.url || "https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png"}
-                            alt="Thumbnail Back"
-                            className="w-20 h-24 object-cover border rounded cursor-pointer"
-                        />
+                        ))}
                     </div>
 
                     <div className="flex-1">

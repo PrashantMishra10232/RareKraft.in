@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Bookmark, CircleUserRound, LogOutIcon, Search, ShoppingCart, User, User2 } from 'lucide-react';
+import { Bookmark, Box, CircleUserRound, LogOutIcon, PackageOpen, Search, ShoppingCart, User, User2 } from 'lucide-react';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { useDispatch, useSelector } from 'react-redux';
@@ -103,12 +103,12 @@ function Navbar() {
                             <PopoverTrigger>
                                 <CircleUserRound className='cursor-pointer' />
                             </PopoverTrigger>
-                            <PopoverContent className='w-80'>
-                                <div className='flex gap-4 space-y-2'>
+                            <PopoverContent className='mx-2 '>
+                                <div className='flex items-center gap-4 space-y-2'>
                                     <Avatar className='cursor-pointer'>
                                         <AvatarImage src={user?.avatar} alt='@shadcn' />
                                     </Avatar>
-                                    <div>
+                                    <div className='flex flex-col'>
                                         <h4 className='font-medium'>{user.name}</h4>
                                         <p className='text-sm text-muted-foreground'>{user.email}</p>
                                     </div>
@@ -117,11 +117,15 @@ function Navbar() {
                                     <div>
                                         <div className='flex w-fit items-center gap-2 cursor-pointer'>
                                             <User2 />
-                                            <Button variant='link'><Link>View Profile</Link></Button>
+                                            <Button variant='link'><Link to="/profilePage">View Profile</Link></Button>
+                                        </div>
+                                        <div className='flex w-fit items-center gap-2 cursor-pointer'>
+                                            <PackageOpen />
+                                            <Button variant='link'><Link>Orders</Link></Button>
                                         </div>
                                         <div className='flex w-fit items-center gap-2 cursor-pointer'>
                                             <Bookmark />
-                                            <Button variant='link'><Link>Orders</Link></Button>
+                                            <Button variant='link'><Link>Wishlist</Link></Button>
                                         </div>
                                     </div>
                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>

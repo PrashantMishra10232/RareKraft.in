@@ -100,7 +100,7 @@ function Signup() {
     <div>
       <Navbar />
       <div id="signup" className='my-30'>
-        <form onSubmit={submitHandler} className='w-[80%] sm:w-[30%] mx-auto'>
+        <form onSubmit={submitHandler} className='w-[80%] md:w-[30%] mx-auto'>
           <div className='flex justify-center items-center gap-3'>
             <h1 style={{ fontFamily: 'Prata, serif' }} className='text-3xl'>Sign Up</h1>
             <p className='w-8 h-[1px] bg-[#414141]'></p>

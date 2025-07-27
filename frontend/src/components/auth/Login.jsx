@@ -70,7 +70,7 @@ function Login() {
   return (
     <div>
       <Navbar />
-      <div id="login" className=' my-30 w-[80%] sm:w-[30%] mx-auto'>
+      <div id="login" className=' my-30 w-[80%] md:w-[30%] mx-auto'>
         <form onSubmit={submitHandler}>
           <div className='flex justify-center items-center gap-3'>
             <h1 style={{ fontFamily: 'Prata, serif' }} className='text-3xl'>Login</h1>

@@ -17,7 +17,7 @@ const router = Router();
 
 router.route("/new").post(isAuthenticatedUser,upload.array("images"),authorizeRole("Seller"),createProduct);
 
-router.route("/all").get(isAuthenticatedUser,getAllProducts);
+router.route("/all").get(getAllProducts);
 
 // router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("Seller"),getAdminProducts);
 

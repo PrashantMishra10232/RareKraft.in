@@ -1,12 +1,42 @@
 import React from 'react'
 import Navbar from './shared/Navbar'
-import { useSelector } from 'react-redux'
-import { Bookmark, ChevronRight, MapPinned, PackageOpen, Smartphone, UserRoundPen, WalletCards } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Bookmark, ChevronRight, Loader2, MapPinned, PackageOpen, Smartphone, UserRoundPen, WalletCards } from 'lucide-react'
 import { Button } from './ui/button'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axiosInstance from '@/utils/axiosInstance';
+import { USER_API_ENDPOINT } from '@/utils/constant';
+import { logout, setLoading } from '@/redux/authSlice';
+import { persistor } from '@/redux/store';
+import { toast } from 'sonner';
 
 function ProfilePage() {
-    const { user } = useSelector(store => store.auth)
+    const { user,loading } = useSelector(store => store.auth)
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const logoutHandler = async () => {
+        dispatch(setLoading(true))
+        try {
+            const res = await axiosInstance.post(`${USER_API_ENDPOINT}/logout`, {}, {
+                withCredentials: true,
+            });
+            if (res.data.success) {
+                dispatch(logout());
+                await persistor.purge();
+                navigate("/");
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            console.error("Error Response:", error.response);
+            const errorMessage = error.response?.data?.message || error.message || "Something went wrong!";
+            toast.error(errorMessage);
+        }finally{
+            dispatch(setLoading(false))
+        }
+    }
 
     return (
         <div className='bg-gray-100'>
@@ -98,7 +128,10 @@ function ProfilePage() {
             </div>
 
             <div className='px-2 pt-6'>
-                <Button className="bg-red-500 font-bold text-sm w-full rounded cursor-pointer">LOGOUT</Button>
+                {
+                    loading? (<Button className="bg-red-500 font-bold text-sm w-full rounded cursor-pointer"><Loader2 className='animate-spin'/></Button>):(<Button className="bg-red-500 font-bold text-sm w-full rounded cursor-pointer" onClick={logoutHandler}>LOGOUT</Button>)
+                }
+                
             </div>
 
         </div>

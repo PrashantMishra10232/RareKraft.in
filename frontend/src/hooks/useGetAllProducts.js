@@ -19,9 +19,7 @@ function useGetAllProducts() {
                     }
                 )
                 if(res.data.success){
-                    dispatch(setAllProducts(res.data.data.products));
-                    console.log("all products data:",res.data.data.products);
-                    
+                    dispatch(setAllProducts(res.data.data.products));                    
                     toast.success(res.data.message);
                 }
             } catch (error) {
