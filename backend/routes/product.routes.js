@@ -21,7 +21,7 @@ router.route("/all").get(getAllProducts);
 
 // router.route("/admin/all").get(isAuthenticatedUser,authorizeRole("Seller"),getAdminProducts);
 
-router.route("/details/:id").get(isAuthenticatedUser,getProductDetails);
+router.route("/details/:id").get(getProductDetails);
 
 router.route("/admin/update/:id").put(isAuthenticatedUser,authorizeRole("Seller"),updateproduct);
 

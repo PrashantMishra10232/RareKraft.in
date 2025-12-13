@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import Footer from './shared/Footer';
 import Navbar from './shared/Navbar';
 import { Skeleton } from './ui/skeleton';
-import axiosInstance from '@/utils/axiosInstance';
 import axios from 'axios';
 import ProductCard from './ProductCard';
 import { Button } from './ui/button';
@@ -31,7 +30,7 @@ function ProductDetail() {
         const fetchProductDetails = async () => {
             try {
                 dispatch(setLoading(true));
-                const res = await axiosInstance.get(`${Product_API_ENDPOINT}/details/${productId}`, { withCredentials: true })
+                const res = await axios.get(`${Product_API_ENDPOINT}/details/${productId}`, { withCredentials: true })
                 if (res.data.success) {
                     dispatch(setProduct(res.data.data));
                     console.log("Product deatils:", res.data.data);

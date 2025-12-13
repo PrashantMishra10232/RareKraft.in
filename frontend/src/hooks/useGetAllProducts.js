@@ -1,5 +1,5 @@
 import { setAllProducts } from "@/redux/productSlice";
-import axiosInstance from "@/utils/axiosInstance";
+import axios from "axios";
 import { Product_API_ENDPOINT } from "@/utils/constant";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -14,7 +14,8 @@ function useGetAllProducts() {
         const fetchAllProducts = async()=>{
             try {
                 // Fetch all products by passing page=all parameter
-                const res = await axiosInstance.get(`${Product_API_ENDPOINT}/all?page=all`,
+                // Use regular axios instead of axiosInstance since products don't require auth
+                const res = await axios.get(`${Product_API_ENDPOINT}/all?page=all`,
                     {
                         withCredentials:true
                     }
@@ -29,7 +30,8 @@ function useGetAllProducts() {
             } catch (error) {
                 console.error("Axios error:",error);
                 const errorMessage = error.response?.data?.message || "Something went wrong";
-                toast.error(errorMessage)
+                // Don't show error toast for product fetching - it's not critical
+                console.error("Failed to fetch products:", errorMessage);
             }
         }
         fetchAllProducts();
