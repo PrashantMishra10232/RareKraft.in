@@ -1,11 +1,6 @@
 import 'dotenv/config';
 import Redis from 'ioredis';
 
-// console.log("REDIS_HOST:", process.env.REDIS_HOST);
-// console.log("REDIS_PORT:", process.env.REDIS_PORT);
-// console.log("REDIS_USERNAME:", process.env.REDIS_USERNAME);
-// console.log("REDIS_PASSWORD:", process.env.REDIS_PASSWORD);
-
 
 const redis = new Redis({
     host: process.env.REDIS_HOST,

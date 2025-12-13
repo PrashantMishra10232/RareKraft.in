@@ -1,22 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { setProduct } from '@/redux/productSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading } from '@/redux/authSlice';
-import { Product_API_ENDPOINT } from '@/utils/constant';
+import { Product_API_ENDPOINT, CART_API_ENDPOINT } from '@/utils/constant';
 import { toast } from 'sonner';
 import Footer from './shared/Footer';
 import Navbar from './shared/Navbar';
 import { Skeleton } from './ui/skeleton';
 import axiosInstance from '@/utils/axiosInstance';
+import axios from 'axios';
 import ProductCard from './ProductCard';
+import { Button } from './ui/button';
+import store from '@/redux/store';
+import { setCartItems } from '@/redux/cartSlice';
 
 function ProductDetail() {
     const { product,allProducts } = useSelector(store => store.product)
-    const { loading } = useSelector(store => store.auth)
+    const { loading, user } = useSelector(store => store.auth)
     const [activeTab, setActiveTab] = useState("description");
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [addingToCart, setAddingToCart] = useState(false);
     const params = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const productId = params.id;    
 
     //fetch the product
@@ -41,6 +48,52 @@ function ProductDetail() {
         fetchProductDetails();
 
     }, [productId, dispatch])
+
+    // Handle add to cart
+    const handleAddToCart = async () => {
+        if (!user) {
+            toast.error("Please login to add items to cart");
+            navigate('/login');
+            return;
+        }
+
+        if (!selectedSize) {
+            toast.error("Please select a size");
+            return;
+        }
+
+        try {
+            setAddingToCart(true);
+            const token = store.getState().auth.token;
+            const res = await axios.post(
+                `${CART_API_ENDPOINT}/add`,
+                {
+                    productId: product._id,
+                    size: selectedSize,
+                    quantity: 1
+                },
+                {
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (res.data.success) {
+                toast.success("Item added to cart!");
+                // Update cart in Redux
+                dispatch(setCartItems(res.data.data || []));
+            }
+        } catch (error) {
+            console.error("Add to cart error:", error);
+            const errorMessage = error.response?.data?.message || "Failed to add item to cart";
+            toast.error(errorMessage);
+        } finally {
+            setAddingToCart(false);
+        }
+    };
 
     if (loading || !product) {
         return <div className="flex flex-col space-y-3 items-center h-120 my-25">
@@ -99,20 +152,45 @@ function ProductDetail() {
                     <div>
                         <span className="text-gray-700 font-medium">Select Size</span>
                         <div className="flex gap-2 mt-2">
-                            {["S", "M", "L", "XL", "XXL"].map((size) => (
-                                <button
-                                    key={size}
-                                    className="border px-4 py-2 rounded hover:bg-gray-100 active:bg-gray-200"
-                                >
-                                    {size}
-                                </button>
-                            ))}
+                            {product.sizes && product.sizes.length > 0 ? (
+                                product.sizes.map((sizeItem) => {
+                                    const isAvailable = sizeItem.quantity > 0;
+                                    const isSelected = selectedSize === sizeItem.size;
+                                    return (
+                                        <button
+                                            key={sizeItem.size}
+                                            onClick={() => {
+                                                if (isAvailable) {
+                                                    setSelectedSize(sizeItem.size);
+                                                }
+                                            }}
+                                            disabled={!isAvailable}
+                                            className={`border-2 px-4 py-2 rounded transition-all ${
+                                                isSelected
+                                                    ? 'border-black bg-black text-white'
+                                                    : isAvailable
+                                                    ? 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                                    : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {sizeItem.size}
+                                            {!isAvailable && <span className="block text-xs">(Out of Stock)</span>}
+                                        </button>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-gray-500 text-sm">No sizes available</p>
+                            )}
                         </div>
                     </div>
 
-                    <button className="mt-4 bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-800 transition">
-                        ADD TO CART
-                    </button>
+                    <Button
+                        onClick={handleAddToCart}
+                        disabled={!selectedSize || addingToCart || !user}
+                        className="mt-4 bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-800 transition w-full sm:w-auto"
+                    >
+                        {addingToCart ? 'Adding...' : !user ? 'Login to Add to Cart' : !selectedSize ? 'Select Size First' : 'ADD TO CART'}
+                    </Button>
 
                     <div className="text-sm text-gray-600 pt-4 space-y-1">
                         <p> 100% Original product.</p>

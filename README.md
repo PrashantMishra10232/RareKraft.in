@@ -12,7 +12,7 @@
 
 **4. 📦 Order Management: Place orders and view order history.**
 
-**5. 💳 Payment Integration: Support for [Razorpay].**
+**5. 💳 Payment Integration: Support for Razorpay payment gateway. See [RAZORPAY_SETUP.md](./RAZORPAY_SETUP.md) for setup instructions.**
 
 **6. 📱 Responsive Design: Fully optimized for both desktop and mobile devices.**
 

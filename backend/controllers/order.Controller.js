@@ -38,7 +38,7 @@ const updateOrderPaymentInfo = asyncHandler(async (req, res) => {
     status: status,
   };
   order.paidAt = Date.now();
-  order.orderStatus = "Paid"; 
+  order.orderStatus = "Processing"; 
 
   await order.save();
 

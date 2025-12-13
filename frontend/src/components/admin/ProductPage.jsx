@@ -8,14 +8,14 @@ import { Button } from '../ui/button';
 import axiosInstance from '@/utils/axiosInstance';
 import { Product_API_ENDPOINT, USER_API_ENDPOINT } from '@/utils/constant';
 import { toast } from 'sonner';
-import { persistor } from '@/redux/store';
-import { logout } from '@/redux/authSlice';
+import { persistor} from '@/redux/store';
+import { logout, setLoading } from '@/redux/authSlice';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import axios from 'axios';
 import useGetAllProducts from '@/hooks/useGetAllProducts';
-import { setLoading } from '@/redux/authSlice';
 import ProductCardAdmin from './ProductCardAdmin';
+import { setAllProducts } from '@/redux/productSlice';
 
 function ProductPage() {
   useGetAllProducts();
@@ -25,6 +25,7 @@ function ProductPage() {
   const [expanded, setExpanded] = useState(false);
 
   const [tableState, setTableState] = useState("Products")
+  const [filteredProducts, setFilteredProducts] = useState(allProducts);
 
   const [sizeInput, setSizeInput] = useState({
     size: "",
@@ -146,7 +147,7 @@ function ProductPage() {
         }
       )
       if (res.data.success) {
-        console.log("product data:", res.data.data);
+        dispatch(setAllProducts([...allProducts, res.data.data]));
         toast.success(res.data.message)
 
         setInput({
@@ -169,6 +170,46 @@ function ProductPage() {
     } finally {
       dispatch(setLoading(false));
     }
+  }
+
+  // Sync filteredProducts with allProducts whenever allProducts changes
+  useEffect(() => {
+    setFilteredProducts(allProducts);
+  }, [allProducts]);
+
+  // Delete product handler
+  const handleDeleteProduct = async (productId) => {
+    try {
+      dispatch(setLoading(true));
+      const res = await axiosInstance.delete(`${Product_API_ENDPOINT}/admin/delete/${productId}`, {
+        withCredentials: true
+      });
+
+      if (res.data.success) {
+        // Remove the deleted product from Redux state
+        const updatedProducts = allProducts.filter(product => product._id !== productId);
+        dispatch(setAllProducts(updatedProducts));
+        toast.success(res.data.message || 'Product deleted successfully');
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      const errorMessage = error.response?.data?.message || "Failed to delete product";
+      toast.error(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  const handleSearch = (query)=>{
+    if(!query){
+      setFilteredProducts(allProducts);
+      return;
+    }
+    const filtered = allProducts.filter((product) =>
+      product.name.toLowerCase().includes(query.toLowerCase()) ||
+      product.description.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredProducts(filtered);
   }
 
   return (
@@ -385,6 +426,7 @@ function ProductPage() {
             <input
               type="text"
               placeholder="Search.. Products | Orders"
+              onChange={(e) => handleSearch(e.target.value)}
               className={`
           flex-grow
           outline-none
@@ -413,8 +455,8 @@ function ProductPage() {
         {tableState === "Products" &&
           (<div className='grid sm:grid-cols-3 md:grid-cols-5 grid-cols-2 gap-2 border-2 p-2 border-black rounded-[8px]'>
             {
-              allProducts?.map((product) => (
-                <ProductCardAdmin product={product} />
+              filteredProducts?.map((product,i) => (
+                <ProductCardAdmin key={product._id || i} product={product} onDelete={handleDeleteProduct} />
               ))
             }
           </div>)

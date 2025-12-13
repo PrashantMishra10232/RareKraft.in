@@ -1,21 +1,30 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Bookmark, Box, CircleUserRound, LogOutIcon, PackageOpen, Search, ShoppingCart, User, User2 } from 'lucide-react';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '@/utils/axiosInstance';
 import { USER_API_ENDPOINT } from '@/utils/constant';
 import { logout } from '@/redux/authSlice';
 import { persistor } from '@/redux/store';
 import { toast } from 'sonner';
+import useGetCart from '@/hooks/useGetCart';
 
 function Navbar() {
     const { user } = useSelector(store => store.auth)
+    const { cartCount } = useSelector(store => store.cart)
+    const { allProducts } = useSelector(store => store.product)
+    useGetCart(); // Fetch cart on mount and when user changes
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
 
     const logoutHandler = async () => {
         try {
@@ -35,6 +44,37 @@ function Navbar() {
             toast.error(errorMessage);
         }
     }
+
+    // Handle search
+    useEffect(() => {
+        if (searchQuery.trim() === '') {
+            setSearchResults([]);
+            return;
+        }
+
+        const query = searchQuery.toLowerCase();
+        const filtered = allProducts.filter((product) => {
+            const nameMatch = product.name?.toLowerCase().includes(query);
+            const descMatch = product.description?.toLowerCase().includes(query);
+            const categoryMatch = product.category?.toLowerCase().includes(query);
+            return nameMatch || descMatch || categoryMatch;
+        });
+
+        setSearchResults(filtered);
+    }, [searchQuery, allProducts]);
+
+    const handleSearchResultClick = (productId) => {
+        setSearchOpen(false);
+        setSearchQuery('');
+        navigate(`/details/${productId}`);
+    };
+
+    const handleViewAllResults = () => {
+        setSearchOpen(false);
+        const query = searchQuery;
+        setSearchQuery('');
+        navigate(`/collection?search=${encodeURIComponent(query)}`);
+    };
 
     return (
         <div className='bg-white'>
@@ -92,7 +132,13 @@ function Navbar() {
                 </div>
                 <div className='flex justify-between gap-4'>
                     <div>
-                        <Search />
+                        <button
+                            onClick={() => setSearchOpen(true)}
+                            className="cursor-pointer"
+                            aria-label="Search products"
+                        >
+                            <Search />
+                        </button>
                     </div>
                     {!user ? (
                         <div>
@@ -137,10 +183,94 @@ function Navbar() {
                         </Popover>
                     )}
                     <div>
-                        <ShoppingCart />
+                        <Link to="/cart" className="cursor-pointer relative inline-block">
+                            <ShoppingCart />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                    {cartCount > 99 ? '99+' : cartCount}
+                                </span>
+                            )}
+                        </Link>
                     </div>
                 </div>
             </div>
+
+            {/* Search Dialog */}
+            <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Search Products</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <Input
+                                type="text"
+                                placeholder="Search for products..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                                autoFocus
+                            />
+                        </div>
+
+                        {searchQuery.trim() && (
+                            <div className="flex-1 overflow-y-auto max-h-[400px]">
+                                {searchResults.length > 0 ? (
+                                    <>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <p className="text-sm text-gray-600">
+                                                Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
+                                            </p>
+                                            {searchResults.length > 5 && (
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    onClick={handleViewAllResults}
+                                                    className="text-sm"
+                                                >
+                                                    View All Results
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            {searchResults.slice(0, 5).map((product) => (
+                                                <div
+                                                    key={product._id}
+                                                    onClick={() => handleSearchResultClick(product._id)}
+                                                    className="flex gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                                                >
+                                                    <img
+                                                        src={product.images?.[0]?.url}
+                                                        alt={product.name}
+                                                        className="w-16 h-16 object-cover rounded"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-semibold text-sm truncate">{product.name}</h4>
+                                                        <p className="text-xs text-gray-600 truncate">{product.description}</p>
+                                                        <p className="text-sm font-bold text-gray-800 mt-1">Rs. {product.price}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <p>No products found matching "{searchQuery}"</p>
+                                        <p className="text-sm mt-2">Try a different search term</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {!searchQuery.trim() && (
+                            <div className="text-center py-8 text-gray-500">
+                                <p>Start typing to search for products</p>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

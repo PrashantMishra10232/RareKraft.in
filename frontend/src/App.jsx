@@ -13,6 +13,7 @@ import ProductPage from "./components/admin/ProductPage"
 import OrdersPage from "./components/admin/OrdersPage"
 import ProtectedRoute from "./components/admin/ProtectedRoute"
 import Dashboard from "./components/admin/Dashboard"
+import ProductEditPage from "./components/admin/ProductEditPage"
 import Collection from "./components/Collection"
 import Contact from "./components/Contact"
 import About from "./components/About"
@@ -20,6 +21,8 @@ import ProductDetail from "./components/ProductDetail"
 import ProfilePage from "./components/ProfilePage"
 import AddressUpdateForm from "./components/AddressUpdateForm"
 import ProfileDetailPage from "./components/ProfileDetailPage"
+import Cart from "./components/Cart"
+import Checkout from "./components/Checkout"
 
 const appRouter = createBrowserRouter([
   {
@@ -70,6 +73,14 @@ const appRouter = createBrowserRouter([
     path:"/profileDetails",
     element:<ProfileDetailPage/>
   },
+  {
+    path:"/cart",
+    element:<Cart/>
+  },
+  {
+    path:"/checkout",
+    element:<Checkout/>
+  },
 
 
   //for seller/admin
@@ -80,6 +91,10 @@ const appRouter = createBrowserRouter([
   {
     path:"/admin/productPage",
     element:<ProtectedRoute><ProductPage/></ProtectedRoute>
+  },
+  {
+    path:"/admin/product/edit/:id",
+    element:<ProtectedRoute><ProductEditPage/></ProtectedRoute>
   },
   {
     path:"/admin/orderPage",

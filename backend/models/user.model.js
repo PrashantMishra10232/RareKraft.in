@@ -70,6 +70,26 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    cart: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        size: {
+          type: String,
+          enum: ["S", "M", "L", "XL", "XXL"],
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          default: 1,
+          min: 1,
+        },
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,

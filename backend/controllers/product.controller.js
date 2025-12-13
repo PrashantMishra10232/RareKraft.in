@@ -78,6 +78,18 @@ const getAllProducts = asyncHandler(async (req, res) => {
   const resultPerPage = 12;
   const productsCount = await Product.countDocuments();
 
+  // If page query param is 'all', return all products without pagination
+  if (req.query.page === 'all') {
+    const apiFeature = new ApiFeatures(Product.find(), req.query)
+      .search()
+      .filter();
+
+    const products = await apiFeature.query;
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { products, productsCount, resultPerPage: productsCount }));
+  }
+
   const apiFeature = new ApiFeatures(Product.find(), req.query)
     .search()
     .filter()
@@ -125,11 +137,45 @@ const updateproduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
-  const { name, description, price } = req.body;
+  const { name, description, price, sizes } = req.body;
 
   if (name?.trim()) product.name = name;
   if (description?.trim()) product.description = description;
   if (price) product.price = price;
+
+  // Handle sizes update
+  if (sizes !== undefined) {
+    let sizesArray = [];
+    try {
+      // If sizes is a string, parse it; if it's already an array, use it directly
+      if (typeof sizes === 'string') {
+        sizesArray = JSON.parse(sizes);
+      } else if (Array.isArray(sizes)) {
+        sizesArray = sizes;
+      }
+      
+      if (!Array.isArray(sizesArray)) {
+        throw new ApiError(400, "Sizes should be an array");
+      }
+      
+      // Validate sizes format
+      sizesArray.forEach((sizeItem) => {
+        if (!sizeItem.size || !['S', 'M', 'L', 'XL', 'XXL'].includes(sizeItem.size)) {
+          throw new ApiError(400, `Invalid size: ${sizeItem.size}`);
+        }
+        if (typeof sizeItem.quantity !== 'number' || sizeItem.quantity < 0) {
+          throw new ApiError(400, `Invalid quantity for size ${sizeItem.size}`);
+        }
+      });
+      
+      product.sizes = sizesArray;
+    } catch (err) {
+      if (err instanceof ApiError) {
+        throw err;
+      }
+      throw new ApiError(400, "Invalid sizes format");
+    }
+  }
 
   if (req.files && req.files.length > 0) {
     const deletePromises = product.images.map((image) =>

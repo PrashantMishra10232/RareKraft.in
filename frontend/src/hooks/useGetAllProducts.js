@@ -13,14 +13,18 @@ function useGetAllProducts() {
     useEffect(()=>{
         const fetchAllProducts = async()=>{
             try {
-                const res = await axiosInstance.get(`${Product_API_ENDPOINT}/all`,
+                // Fetch all products by passing page=all parameter
+                const res = await axiosInstance.get(`${Product_API_ENDPOINT}/all?page=all`,
                     {
                         withCredentials:true
                     }
                 )
                 if(res.data.success){
                     dispatch(setAllProducts(res.data.data.products));                    
-                    toast.success(res.data.message);
+                    // Only show toast if there's a message
+                    if(res.data.message) {
+                        toast.success(res.data.message);
+                    }
                 }
             } catch (error) {
                 console.error("Axios error:",error);

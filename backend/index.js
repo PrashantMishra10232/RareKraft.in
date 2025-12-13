@@ -61,11 +61,13 @@ import userRouter from "./routes/user.routes.js";
 import orderRouter from "./routes/order.routes.js";
 import productRouter from "./routes/product.routes.js";
 import paymentRouter from "./routes/payment.routes.js"
+import cartRouter from "./routes/cart.routes.js"
 
 app.use("/api/v1/user",userRouter)
 app.use("/api/v1/order",orderRouter)
 app.use("/api/v1/product",productRouter)
 app.use("/api/v1/payment",paymentRouter)
+app.use("/api/v1/cart",cartRouter)
 
 app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({
