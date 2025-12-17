@@ -23,6 +23,7 @@ import AddressUpdateForm from "./components/AddressUpdateForm"
 import ProfileDetailPage from "./components/ProfileDetailPage"
 import Cart from "./components/Cart"
 import Checkout from "./components/Checkout"
+import Wishlist from "./components/Wishlist"
 
 const appRouter = createBrowserRouter([
   {
@@ -80,6 +81,10 @@ const appRouter = createBrowserRouter([
   {
     path:"/checkout",
     element:<Checkout/>
+  },
+  {
+    path:"/wishlist",
+    element:<Wishlist/>
   },
 
 

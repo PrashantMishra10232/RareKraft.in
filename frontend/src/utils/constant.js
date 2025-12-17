@@ -10,3 +10,5 @@ export const CART_API_ENDPOINT = `${API_BASE_URL}/api/v1/cart`;
 export const ORDER_API_ENDPOINT = `${API_BASE_URL}/api/v1/order`;
 
 export const PAYMENT_API_ENDPOINT = `${API_BASE_URL}/api/v1/payment`;
+
+export const WISHLIST_API_ENDPOINT = `${API_BASE_URL}/api/v1/wishlist`;

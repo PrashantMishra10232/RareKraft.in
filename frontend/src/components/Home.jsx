@@ -12,7 +12,6 @@ function Home() {
     const { allProducts } = useSelector(store => store.product);
     const { user } = useSelector(store => store.auth);
     const navigate = useNavigate();
-    console.log("VITE_API_BASE_URL:",import.meta.env.VITE_API_BASE_URL);
     useEffect(() => {
         if (user) {
             if (user.role === "Seller") {

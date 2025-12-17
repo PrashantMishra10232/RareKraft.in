@@ -1,22 +1,30 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { ShoppingCart, X } from 'lucide-react';
+import { ShoppingCart, X, Heart } from 'lucide-react';
 import axios from 'axios';
-import { CART_API_ENDPOINT } from '@/utils/constant';
+import { CART_API_ENDPOINT, WISHLIST_API_ENDPOINT } from '@/utils/constant';
 import { toast } from 'sonner';
 import store from '@/redux/store';
 import { setCartItems } from '@/redux/cartSlice';
+import { removeWishlistItem, setWishlistItems} from '@/redux/wishlistSlice';
+import useGetWishlist from '@/hooks/useGetWishlist';
 
 function ProductCard({ product }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { allProducts } = useSelector(store => store.product);
     const { user } = useSelector(store => store.auth);
+    const { wishlistItems } = useSelector(store => store.wishlist);
     const [showSizeModal, setShowSizeModal] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);
+    const [isInWishlist, setIsInWishlist] = useState(false);
+    const [togglingWishlist, setTogglingWishlist] = useState(false);
+
+    // Fetch wishlist data
+    useGetWishlist();
 
     if (!Array.isArray(allProducts) || allProducts.length === 0) {
         return <div className='text-center py-4'>No products found.</div>;
@@ -24,6 +32,18 @@ function ProductCard({ product }) {
 
     // Get available sizes for this product
     const availableSizes = product?.sizes?.filter(size => size.quantity > 0) || [];
+
+    // Check if product is in wishlist
+    useEffect(() => {
+        if (user && wishlistItems && Array.isArray(wishlistItems)) {
+            const inWishlist = wishlistItems.some(
+                item => item.product?._id === product._id
+            );
+            setIsInWishlist(inWishlist);
+        } else {
+            setIsInWishlist(false);
+        }
+    }, [wishlistItems, product._id, user]);
 
     const handleCardClick = (e) => {
         // Don't navigate if clicking on the add to cart button area
@@ -93,6 +113,71 @@ function ProductCard({ product }) {
         setSelectedSize(null);
     };
 
+    const handleToggleWishlist = async () => {
+        if (!user) {
+            toast.error("Please login to add items to wishlist");
+            navigate('/login');
+            return;
+        }
+
+        try {
+            setTogglingWishlist(true);
+            const token = store.getState().auth.token;
+
+            if (isInWishlist) {
+                // Remove from wishlist
+                const res = await axios.delete(
+                    `${WISHLIST_API_ENDPOINT}/remove/${product._id}`,
+                    {
+                        withCredentials: true,
+                        headers: {
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (res.data.success) {
+                    dispatch(removeWishlistItem(product._id));
+                    toast.success("Removed from wishlist");
+                }
+            } else {
+                // Add to wishlist
+                const res = await axios.post(
+                    `${WISHLIST_API_ENDPOINT}/add`,
+                    { productId: product._id },
+                    {
+                        withCredentials: true,
+                        headers: {
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (res.data.success) {
+                    console.log("Wishlist add response data:", res.data.data);
+                    const wishlistData = res.data.data || [];
+                    // Normalize all items to ensure addedAt is a string
+                    const normalizedData = wishlistData.map(item => ({
+                        ...item,
+                        addedAt: item.addedAt instanceof Date 
+                            ? item.addedAt.toISOString() 
+                            : (typeof item.addedAt === 'string' ? item.addedAt : new Date().toISOString())
+                    }));
+                    dispatch(setWishlistItems(normalizedData));
+                    toast.success("Added to wishlist");
+                }
+            }
+        } catch (error) {
+            console.error("Wishlist toggle error:", error);
+            const errorMessage = error.response?.data?.message || "Failed to update wishlist";
+            toast.error(errorMessage);
+        } finally {
+            setTogglingWishlist(false);
+        }
+    };
+
     return (
         <>
             <div 
@@ -106,6 +191,23 @@ function ProductCard({ product }) {
                         loading="lazy" 
                         className='object-cover w-full h-full transition-transform duration-500 ease-in-out hover:scale-110'
                     />
+                    {/* Wishlist Button */}
+                    {user && (
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleWishlist();
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-2 right-2 bg-white/90 hover:bg-white z-10"
+                            disabled={togglingWishlist}
+                        >
+                            <Heart 
+                                className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                            />
+                        </Button>
+                    )}
                     {/* Add to Cart Button Overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <Button

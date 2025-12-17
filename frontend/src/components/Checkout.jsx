@@ -209,11 +209,6 @@ function Checkout() {
 
             const razorpayApiKey = apiKeyRes.data.data.razorpayApiKey
 
-            // Check if using test mode keys
-            if (razorpayApiKey && razorpayApiKey.startsWith('rzp_test_')) {
-                toast.warning("You are using Test Mode keys. Test QR codes cannot be scanned by real UPI apps. Switch to Live Mode keys for real payments.")
-            }
-
             // Create Razorpay order
             const paymentRes = await axios.post(
                 `${PAYMENT_API_ENDPOINT}/processPayment`,

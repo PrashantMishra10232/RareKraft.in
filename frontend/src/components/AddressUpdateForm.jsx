@@ -58,7 +58,7 @@ function AddressUpdateForm() {
             })
           }
         } catch (error) {
-          console.error("Invalid Pincode or API error", err);
+          console.error("Invalid Pincode or API error", error);
         }
       }
     }
@@ -509,12 +509,17 @@ function AddressUpdateForm() {
                           <div>
                             <Separator />
                             <div className='flex pt-2'>
-                              <DialogClose className="w-1/2">
-                                <h1 ref={closeRef} className='w-full text-center text-xl font-semiBold cursor-pointer'>CANCEL</h1>
+                              <DialogClose className="w-1/2" asChild>
+                                <button ref={closeRef} className='w-full text-center text-xl font-semiBold cursor-pointer bg-transparent border-none p-0'>CANCEL</button>
                               </DialogClose>
 
                               <Separator orientation="vertical" className="!h-7" />
-                              <h1 onClick={() => removeAddressHandler(addrs._id)} className='w-1/2 text-center text-xl font-bold text-yellow-500 cursor-pointer'>DELETE</h1>
+                              <button 
+                                onClick={() => removeAddressHandler(addrs._id)} 
+                                className='w-1/2 text-center text-xl font-bold text-yellow-500 cursor-pointer bg-transparent border-none p-0 hover:opacity-80'
+                              >
+                                DELETE
+                              </button>
                             </div>
                           </div>
                         </DialogContent>

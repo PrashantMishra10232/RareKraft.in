@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { setProduct } from '@/redux/productSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading } from '@/redux/authSlice';
-import { Product_API_ENDPOINT, CART_API_ENDPOINT } from '@/utils/constant';
+import { Product_API_ENDPOINT, CART_API_ENDPOINT, WISHLIST_API_ENDPOINT } from '@/utils/constant';
 import { toast } from 'sonner';
 import Footer from './shared/Footer';
 import Navbar from './shared/Navbar';
@@ -11,19 +11,28 @@ import { Skeleton } from './ui/skeleton';
 import axios from 'axios';
 import ProductCard from './ProductCard';
 import { Button } from './ui/button';
+import { Heart } from 'lucide-react';
 import store from '@/redux/store';
 import { setCartItems } from '@/redux/cartSlice';
+import { removeWishlistItem, setWishlistItems } from '@/redux/wishlistSlice';
+import useGetWishlist from '@/hooks/useGetWishlist';
 
 function ProductDetail() {
     const { product,allProducts } = useSelector(store => store.product)
     const { loading, user } = useSelector(store => store.auth)
+    const { wishlistItems } = useSelector(store => store.wishlist)
     const [activeTab, setActiveTab] = useState("description");
     const [selectedSize, setSelectedSize] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);
+    const [isInWishlist, setIsInWishlist] = useState(false);
+    const [togglingWishlist, setTogglingWishlist] = useState(false);
     const params = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const productId = params.id;    
+    const productId = params.id;
+    
+    // Fetch wishlist data
+    useGetWishlist();
 
     //fetch the product
     useEffect(() => {
@@ -47,6 +56,85 @@ function ProductDetail() {
         fetchProductDetails();
 
     }, [productId, dispatch])
+
+    // Check if product is in wishlist
+    useEffect(() => {
+        if (user && wishlistItems && Array.isArray(wishlistItems) && product) {
+            const inWishlist = wishlistItems.some(
+                item => item.product?._id === product._id
+            );
+            setIsInWishlist(inWishlist);
+        } else {
+            setIsInWishlist(false);
+        }
+    }, [wishlistItems, product?._id, user]);
+
+    // Handle wishlist toggle
+    const handleToggleWishlist = async () => {
+        if (!user) {
+            toast.error("Please login to add items to wishlist");
+            navigate('/login');
+            return;
+        }
+
+        try {
+            setTogglingWishlist(true);
+            const token = store.getState().auth.token;
+
+            if (isInWishlist) {
+                // Remove from wishlist
+                const res = await axios.delete(
+                    `${WISHLIST_API_ENDPOINT}/remove/${product._id}`,
+                    {
+                        withCredentials: true,
+                        headers: {
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (res.data.success) {
+                    dispatch(removeWishlistItem(product._id));
+                    toast.success("Removed from wishlist");
+                }
+            } else {
+                // Add to wishlist
+                const res = await axios.post(
+                    `${WISHLIST_API_ENDPOINT}/add`,
+                    { productId: product._id },
+                    {
+                        withCredentials: true,
+                        headers: {
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (res.data.success) {
+                    // Backend returns the full wishlist with populated products
+                    // Use setWishlistItems to update the entire wishlist with populated data
+                    const wishlistData = res.data.data || [];
+                    // Normalize all items to ensure addedAt is a string
+                    const normalizedData = wishlistData.map(item => ({
+                        ...item,
+                        addedAt: item.addedAt instanceof Date 
+                            ? item.addedAt.toISOString() 
+                            : (typeof item.addedAt === 'string' ? item.addedAt : new Date().toISOString())
+                    }));
+                    dispatch(setWishlistItems(normalizedData));
+                    toast.success("Added to wishlist");
+                }
+            }
+        } catch (error) {
+            console.error("Wishlist toggle error:", error);
+            const errorMessage = error.response?.data?.message || "Failed to update wishlist";
+            toast.error(errorMessage);
+        } finally {
+            setTogglingWishlist(false);
+        }
+    };
 
     // Handle add to cart
     const handleAddToCart = async () => {
@@ -115,6 +203,7 @@ function ProductDetail() {
                     <div className="flex md:flex-col gap-2 md:w-[100px]">
                         {product.images.map((img)=>(
                             <img
+                            key={img?.public_id || img?.url || `img-${Math.random()}`}
                             src={img?.url || "https://res.cloudinary.com/dlqas2glz/image/upload/v1751957398/logo-C9jKJhBG_zwg2oj.png"}
                             alt="Thumbnail Front"
                             className="w-20 h-24 object-cover border rounded cursor-pointer"
@@ -183,13 +272,33 @@ function ProductDetail() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleAddToCart}
-                        disabled={!selectedSize || addingToCart || !user}
-                        className="mt-4 bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-800 transition w-full sm:w-auto"
-                    >
-                        {addingToCart ? 'Adding...' : !user ? 'Login to Add to Cart' : !selectedSize ? 'Select Size First' : 'ADD TO CART'}
-                    </Button>
+                            <div className="flex gap-3 mt-4">
+                                <Button
+                                    onClick={handleAddToCart}
+                                    disabled={!selectedSize || addingToCart || !user}
+                                    className="flex-1 bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-800 transition"
+                                >
+                                    {(() => {
+                                        if (addingToCart) return 'Adding...';
+                                        if (!user) return 'Login to Add to Cart';
+                                        if (!selectedSize) return 'Select Size First';
+                                        return 'ADD TO CART';
+                                    })()}
+                                </Button>
+                                {user && (
+                                    <Button
+                                        onClick={handleToggleWishlist}
+                                        variant="outline"
+                                        size="lg"
+                                        className="px-4"
+                                        disabled={togglingWishlist}
+                                    >
+                                        <Heart 
+                                            className={`h-5 w-5 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                                        />
+                                    </Button>
+                                )}
+                            </div>
 
                     <div className="text-sm text-gray-600 pt-4 space-y-1">
                         <p> 100% Original product.</p>

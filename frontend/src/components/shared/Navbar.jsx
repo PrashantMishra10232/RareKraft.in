@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Bookmark, Box, CircleUserRound, LogOutIcon, PackageOpen, Search, ShoppingCart, User, User2 } from 'lucide-react';
+import { Bookmark, CircleUserRound, LogOutIcon, PackageOpen, Search, ShoppingCart, User, User2 } from 'lucide-react';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -13,12 +13,15 @@ import { logout } from '@/redux/authSlice';
 import { persistor } from '@/redux/store';
 import { toast } from 'sonner';
 import useGetCart from '@/hooks/useGetCart';
+import useGetWishlist from '@/hooks/useGetWishlist';
 
 function Navbar() {
     const { user } = useSelector(store => store.auth)
     const { cartCount } = useSelector(store => store.cart)
+    const { wishlistCount } = useSelector(store => store.wishlist)
     const { allProducts } = useSelector(store => store.product)
     useGetCart(); // Fetch cart on mount and when user changes
+    useGetWishlist(); // Fetch wishlist on mount and when user changes
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -171,7 +174,7 @@ function Navbar() {
                                         </div>
                                         <div className='flex w-fit items-center gap-2 cursor-pointer'>
                                             <Bookmark />
-                                            <Button variant='link'><Link>Wishlist</Link></Button>
+                                            <Button variant='link'><Link to="/wishlist">Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</Link></Button>
                                         </div>
                                     </div>
                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>
