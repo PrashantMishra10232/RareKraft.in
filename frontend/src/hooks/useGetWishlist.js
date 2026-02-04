@@ -37,7 +37,6 @@ function useGetWishlist() {
                             ? item.addedAt.toISOString() 
                             : item.addedAt || new Date().toISOString()
                     }));
-                    console.log("Fetched wishlist data:", normalizedData);
                     dispatch(setWishlistItems(normalizedData));
                 }
             } catch (error) {
