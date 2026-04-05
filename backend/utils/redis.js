@@ -7,6 +7,7 @@ const redis = new Redis({
     port:Number(process.env.REDIS_PORT) || 19721,
     username:process.env.REDIS_USERNAME,
     password:process.env.REDIS_PASSWORD,
+    tls: {},
 })
 
 // const redis = new Redis(process.env.REDIS_URI)
